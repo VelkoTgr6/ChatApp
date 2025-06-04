@@ -6,13 +6,14 @@ using static FriChat.Infrastructure.Constants.ModelConstants;
 
 namespace FriChat.Infrastructure.Data.Models
 {
-    public class User
+    public class AppUser
     {
         [Key]
-        [Comment("User Identifier")]
+        [Comment("User Identifier (same as IdentityUser Id)")]
         public string Id { get; set; } = string.Empty;
 
         [Required]
+        [MaxLength(UserNameMaxLength)]
         [Comment("Username of the User")]
         public string UserName { get; set; } = string.Empty;
 
@@ -37,23 +38,25 @@ namespace FriChat.Infrastructure.Data.Models
         [Comment("Email of the user")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        [Comment("User Identifier")]
-        public string UserId { get; set; } = string.Empty;
-
-        [ForeignKey(nameof(UserId))]
-        public virtual IdentityUser TheUser { get; set; } = null!;
-
         [MaxLength(ProfilePictureMaxLength)]
         [Comment("Path to the profile picture of the student")]
         public string ProfilePicturePath { get; set; } = "images/profiles/default.jpg";
 
-        [Required]
         [Comment("The date of creation of the user")]
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Comment("The date of last login of the user")]
+        public DateTime LastLogin { get; set; } = DateTime.UtcNow;
 
         [Required]
-        [Comment("The date of last login of the user")]
-        public DateTime LastLogin { get; set; }
+        [Comment("Identity User Id for the user, used for authentication")]
+        public string IdentityUserId { get; set; } = string.Empty;
+
+        [ForeignKey(nameof(IdentityUserId))]
+        public virtual IdentityUser User { get; set; } = null!;
+
+        public virtual ICollection<Message> SentMessages { get; set; } = new List<Message>();
+        public virtual ICollection<Message> ReceivedMessages { get; set; } = new List<Message>();
     }
+
 }
