@@ -1,6 +1,6 @@
-using FriChat.Infrastructure;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using FriChat.Extensions;
+using FriChat.Infrastructure.Services.EmailSender;
+using Microsoft.Extensions.Options;
 
 namespace FriChat
 {
@@ -10,19 +10,29 @@ namespace FriChat
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            builder.Services.AddDbContext<FriChatDbContext>(options =>
-                options.UseNpgsql(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            builder.Services.AddAppDbContext(builder.Configuration);
 
-            builder.Services.AddIdentity<IdentityUser,IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
-                .AddEntityFrameworkStores<FriChatDbContext>();
-            builder.Services.AddRazorPages();
+            builder.Services.AddAppServices();
+
+            builder.Services.AddAppIdentity(builder.Configuration);
+
+            // Configure EmailSettings with values from the configuration
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+            // Register EmailService as a singleton service
+            builder.Services.AddSingleton<IEmailSender>(serviceProvider =>
+            {
+                var emailSettings = serviceProvider.GetRequiredService<IOptions<EmailSettings>>().Value;
+                return new EmailService(
+                    emailSettings.SmtpServer,
+                    emailSettings.SmtpPort,
+                    emailSettings.SmtpUser,
+                    emailSettings.SmtpPass
+                );
+            });
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -38,6 +48,8 @@ namespace FriChat
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
