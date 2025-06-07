@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using FriChat.Infrastructure.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -30,6 +31,10 @@ namespace FriChat.Infrastructure.Data.Models
         [Required]
         [Comment("Date of birth of User")]
         public DateTime DateOfBirth { get; set; }
+
+        [Required]
+        [Comment("The gender of the User")]
+        public Gender Gender { get; set; }
 
         [Comment("Shows if student is Deleted")]
         public bool IsDeleted { get; set; } = false;
