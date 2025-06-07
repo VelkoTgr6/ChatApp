@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
+using FriChat.Infrastructure.Data.Common;
+using FriChat.Infrastructure.Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -21,13 +23,15 @@ namespace FriChat.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly Infrastructure.Services.EmailSender.IEmailSender _emailSender;
+        private readonly IRepository _repository;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            Infrastructure.Services.EmailSender.IEmailSender emailSender)
+            Infrastructure.Services.EmailSender.IEmailSender emailSender,
+            IRepository repository)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -35,6 +39,7 @@ namespace FriChat.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _repository = repository;
         }
 
         [BindProperty]
@@ -58,6 +63,23 @@ namespace FriChat.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required]
+            [Display(Name = "Username")]
+            public string UserName { get; set; }
+
+            [Required]
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
+            [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Date of Birth")]
+            public DateTime DateOfBirth { get; set; }
         }
 
 
@@ -75,7 +97,7 @@ namespace FriChat.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                await _userStore.SetUserNameAsync(user, Input.UserName, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
@@ -95,6 +117,22 @@ namespace FriChat.Areas.Identity.Pages.Account
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
+                    var appUser = new AppUser
+                    { 
+                        UserName = Input.UserName,
+                        FirstName = Input.FirstName,
+                        LastName = Input.LastName,
+                        DateOfBirth = DateTime.SpecifyKind(Input.DateOfBirth, DateTimeKind.Utc),
+                        Email = Input.Email,
+                        IdentityUserId = userId,
+                        CreatedAt = DateTime.UtcNow,
+                        LastLogin = DateTime.UtcNow
+                        // Set other properties as needed
+                    };
+
+                    await _repository.AddAsync(appUser);
+                    await _repository.SaveChangesAsync();
+
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
@@ -104,13 +142,21 @@ namespace FriChat.Areas.Identity.Pages.Account
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         return LocalRedirect(returnUrl);
                     }
+
+
                 }
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
-
+            foreach (var entry in ModelState)
+            {
+                foreach (var error in entry.Value.Errors)
+                {
+                    _logger.LogError($"Key: {entry.Key}, Error: {error.ErrorMessage}");
+                }
+            }
             // If we got this far, something failed, redisplay form
             return Page();
         }

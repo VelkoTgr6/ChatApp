@@ -26,4 +26,8 @@
     <ProjectReference Include="..\FriChat.Core\FriChat.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Areas\Identity\Data\" />
+  </ItemGroup>
+
 </Project>
