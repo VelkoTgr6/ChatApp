@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace FriChat.Infrastructure.Data.Common
 {
@@ -22,6 +23,12 @@ namespace FriChat.Infrastructure.Data.Common
         public async Task<int> SaveChangesAsync()
         {
             return await context.SaveChangesAsync();
+        }
+
+        public async Task<IdentityUser?> GetIdentityUserByIdAsync(string id)
+        {
+            var user = await DbSet<IdentityUser>().FirstOrDefaultAsync(u => u.Id == id);
+            return user; // Returns null if not found, caller can handle gracefully
         }
     }
 }
