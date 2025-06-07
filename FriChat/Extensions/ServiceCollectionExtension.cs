@@ -9,7 +9,14 @@ namespace FriChat.Extensions
     {
         public static IServiceCollection AddAppServices(this IServiceCollection services)
         {
-            
+            services.AddScoped<ICloudinary, CloudinaryService>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                var cloudName = configuration["Cloudinary:CloudName"] ?? throw new InvalidOperationException("CloudName not configured.");
+                var apiKey = configuration["Cloudinary:ApiKey"] ?? throw new InvalidOperationException("ApiKey not configured.");
+                var apiSecret = configuration["Cloudinary:ApiSecret"] ?? throw new InvalidOperationException("ApiSecret not configured.");
+                return new CloudinaryService(cloudName, apiKey, apiSecret);
+            });
 
             return services;
         }
