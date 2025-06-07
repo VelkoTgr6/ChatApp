@@ -1,5 +1,6 @@
 using FriChat.Extensions;
 using FriChat.Infrastructure.Services.EmailSender;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace FriChat
@@ -29,6 +30,11 @@ namespace FriChat
                     emailSettings.SmtpUser,
                     emailSettings.SmtpPass
                 );
+            });
+
+            builder.Services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
 
             var app = builder.Build();

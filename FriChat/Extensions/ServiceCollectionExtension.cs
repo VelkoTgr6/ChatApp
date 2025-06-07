@@ -1,4 +1,5 @@
 ﻿using FriChat.Infrastructure;
+using FriChat.Infrastructure.Data.Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +9,8 @@ namespace FriChat.Extensions
     {
         public static IServiceCollection AddAppServices(this IServiceCollection services)
         {
-            // Add your custom services here
-            // Example: services.AddScoped<IMyService, MyService>();
-            // If you have a DbContext, add it here
-            // Example: services.AddDbContext<FriChatDbContext>(options => options.UseNpgsql("YourConnectionString"));
-            // Add Identity services if needed
-            // Example: services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<FriChatDbContext>();
+            
+
             return services;
         }
 
@@ -24,6 +21,8 @@ namespace FriChat.Extensions
 
             services.AddDbContext<FriChatDbContext>(options =>
                 options.UseNpgsql(connectionString));
+
+            services.AddScoped<IRepository, Repository>();
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -43,6 +42,7 @@ namespace FriChat.Extensions
             })
                 .AddEntityFrameworkStores<FriChatDbContext>()
                 .AddDefaultTokenProviders();
+
             return services;
         }
     }
