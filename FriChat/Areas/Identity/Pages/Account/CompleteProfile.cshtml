@@ -1,0 +1,78 @@
+﻿@page
+@model CompleteProfileModel
+@{
+    ViewData["Title"] = "Complete Profile";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                        <div class="mb-3 text-center">
+                            <img id="profilePreview" src="~/images/profiles/default.jpg" alt="Profile Picture" class="rounded-circle mb-2" style="width: 120px; height: 120px; object-fit: cover; border: 2px solid #ccc;" />
+                            <div>
+                                <input type="file" asp-for="Input.ProfilePictureFile" accept="image/*" class="form-control mt-2" onchange="previewProfilePicture(event)" />
+                                <span asp-validation-for="Input.ProfilePictureUrl" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Username" class="form-label"></label>
+                            <input asp-for="Input.Username" class="form-control" autocomplete="new-username" aria-required="true" placeholder="username" />
+                            <span asp-validation-for="Input.Username" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.FirstName" class="form-label"></label>
+                            <input asp-for="Input.FirstName" class="form-control" aria-required="true" placeholder="Ivan" />
+                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.LastName" class="form-label"></label>
+                            <input asp-for="Input.LastName" class="form-control" aria-required="true" placeholder="Petrov" />
+                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Gender" class="form-label"></label>
+                            <select asp-for="Input.Gender" class="form-control" required>
+                                <option value="" disabled selected hidden>Select gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="Unspecified">Unspecified</option>
+                                <option value="PreferNotToSay">Prefer Not To Say</option>
+                            </select>
+                            <span asp-validation-for="Input.Gender" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.DateOfBirth" class="form-label"></label>
+                            <input asp-for="Input.DateOfBirth" class="form-control" type="date" min="1900-01-01" max="2100-01-01" />
+                            <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Complete Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewProfilePicture(event) {
+            const [file] = event.target.files;
+            if (file) {
+                document.getElementById('profilePreview').src = URL.createObjectURL(file);
+            }
+        }
+    </script>
+}
