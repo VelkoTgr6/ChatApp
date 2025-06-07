@@ -76,7 +76,8 @@ namespace FriChat.Infrastructure.Migrations
                 name: "AppUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false, comment: "User Identifier (same as IdentityUser Id)"),
+                    Id = table.Column<int>(type: "integer", nullable: false, comment: "User Identifier (same as IdentityUser Id)")
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "Username of the User"),
                     FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "First Name of the User"),
                     LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "Last Name of the User"),
@@ -188,13 +189,14 @@ namespace FriChat.Infrastructure.Migrations
                 name: "Messages",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, comment: "Unique identifier for the message"),
+                    Id = table.Column<int>(type: "integer", nullable: false, comment: "Unique identifier for the message")
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false, comment: "Content of the message"),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "Timestamp when the message was sent"),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false, comment: "Indicates if the message has been read by the receiver"),
                     Type = table.Column<int>(type: "integer", nullable: false, comment: "Type of the message (e.g., text, image, file)"),
-                    SenderId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the user who sent the message"),
-                    ReceiverId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the user who received the message"),
+                    SenderId = table.Column<int>(type: "integer", nullable: false, comment: "Identifier of the user who sent the message"),
+                    ReceiverId = table.Column<int>(type: "integer", nullable: false, comment: "Identifier of the user who received the message"),
                     AttachmentUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "URL of the attachment, if any (e.g., image, file)")
                 },
                 constraints: table =>

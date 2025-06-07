@@ -10,7 +10,7 @@ namespace FriChat.Infrastructure.Data.Models
     {
         [Key]
         [Comment("Unique identifier for the message")]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(MessageContentMaxLength)]
@@ -30,11 +30,11 @@ namespace FriChat.Infrastructure.Data.Models
 
         [Required]
         [Comment("Identifier of the user who sent the message")]
-        public string SenderId { get; set; } = string.Empty;
+        public int SenderId { get; set; }
 
         [Required]
         [Comment("Identifier of the user who received the message")]
-        public string ReceiverId { get; set; } = string.Empty;
+        public int ReceiverId { get; set; }
 
         [MaxLength(AttachmentUrlMaxLength)]
         [Comment("URL of the attachment, if any (e.g., image, file)")]

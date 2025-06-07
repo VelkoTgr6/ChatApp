@@ -11,7 +11,7 @@ namespace FriChat.Infrastructure.Configuration
         {
             builder.HasData(new AppUser
             {
-                Id = "1", // Use a GUID or string as appropriate
+                Id = 1,
                 UserName = "seeduser",
                 FirstName = "Seed",
                 LastName = "User",

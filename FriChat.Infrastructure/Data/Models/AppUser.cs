@@ -10,7 +10,7 @@ namespace FriChat.Infrastructure.Data.Models
     {
         [Key]
         [Comment("User Identifier (same as IdentityUser Id)")]
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; } 
 
         [Required]
         [MaxLength(UserNameMaxLength)]

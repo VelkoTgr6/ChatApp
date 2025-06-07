@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FriChat.Infrastructure.Migrations
 {
     [DbContext(typeof(FriChatDbContext))]
-    [Migration("20250605180109_InitialCreate")]
+    [Migration("20250606190814_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,9 +27,12 @@ namespace FriChat.Infrastructure.Migrations
 
             modelBuilder.Entity("FriChat.Infrastructure.Data.Models.AppUser", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
                         .HasComment("User Identifier (same as IdentityUser Id)");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -90,10 +93,12 @@ namespace FriChat.Infrastructure.Migrations
 
             modelBuilder.Entity("FriChat.Infrastructure.Data.Models.Message", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasComment("Unique identifier for the message");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AttachmentUrl")
                         .HasMaxLength(500)
@@ -110,14 +115,12 @@ namespace FriChat.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasComment("Indicates if the message has been read by the receiver");
 
-                    b.Property<string>("ReceiverId")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("integer")
                         .HasComment("Identifier of the user who received the message");
 
-                    b.Property<string>("SenderId")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("SenderId")
+                        .HasColumnType("integer")
                         .HasComment("Identifier of the user who sent the message");
 
                     b.Property<DateTime>("Timestamp")
