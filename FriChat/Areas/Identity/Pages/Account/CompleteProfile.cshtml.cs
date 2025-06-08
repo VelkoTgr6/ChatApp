@@ -1,7 +1,7 @@
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Data.Models;
 using FriChat.Infrastructure.Enums;
-using FriChat.Infrastructure.Services.Cloudinary;
+using FriChat.Infrastructure.Services.CloudinaryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
