@@ -7,5 +7,7 @@ namespace FriChat.Infrastructure.Data.Common
         Task<int> SaveChangesAsync();
         Task AddAsync<T>(T entity) where T : class;
         Task<IdentityUser?> GetIdentityUserByIdAsync(string id);
+        Task<bool> EmailExistAsync(string email);
+        Task<bool> UsernameExistAsync(string username);
     }
 }

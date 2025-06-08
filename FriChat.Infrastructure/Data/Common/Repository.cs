@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using FriChat.Infrastructure.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace FriChat.Infrastructure.Data.Common
@@ -29,6 +30,16 @@ namespace FriChat.Infrastructure.Data.Common
         {
             var user = await DbSet<IdentityUser>().FirstOrDefaultAsync(u => u.Id == id);
             return user; // Returns null if not found, caller can handle gracefully
+        }
+
+        public async Task<bool> EmailExistAsync(string email)
+        {
+            return await DbSet<AppUser>().AnyAsync(u => u.Email == email && u.IsDeleted == false);
+        }
+
+        public Task<bool> UsernameExistAsync(string username)
+        {
+            return DbSet<AppUser>().AnyAsync(u => u.UserName == username && u.IsDeleted == false);
         }
     }
 }

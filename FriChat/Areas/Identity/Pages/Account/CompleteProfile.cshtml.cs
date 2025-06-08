@@ -1,11 +1,11 @@
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Data.Models;
 using FriChat.Infrastructure.Enums;
+using FriChat.Infrastructure.Services.Cloudinary;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
-using CloudinaryDotNet;
 
 namespace FriChat.Areas.Identity.Pages.Account
 {
@@ -14,13 +14,13 @@ namespace FriChat.Areas.Identity.Pages.Account
         private readonly IRepository repository;
         private readonly ILogger<CompleteProfileModel> logger;
         private readonly UserManager<IdentityUser> userManager;
-        private readonly Infrastructure.Data.Common.ICloudinary cloudinary;
+        private readonly ICloudinary cloudinary;
 
         public CompleteProfileModel(
             IRepository _repository,
             ILogger<CompleteProfileModel> _logger,
             UserManager<IdentityUser> _userManager,
-            Infrastructure.Data.Common.ICloudinary _cloudinary
+            ICloudinary _cloudinary
             )
         {
             repository = _repository;
@@ -51,10 +51,10 @@ namespace FriChat.Areas.Identity.Pages.Account
             [Display(Name = "Profile Picture")]
             public IFormFile? ProfilePictureFile { get; set; }
 
-            [Display(Name = "Profile Picture")]
-            [DataType(DataType.ImageUrl)]
-            [Url(ErrorMessage = "Please enter a valid URL for the profile picture.")]
-            public string? ProfilePictureUrl { get; set; }
+            //[Display(Name = "Profile Picture")]
+            //[DataType(DataType.ImageUrl)]
+            //[Url(ErrorMessage = "Please enter a valid URL for the profile picture.")]
+            //public string? ProfilePictureUrl { get; set; }
 
             [Required(ErrorMessage = "Date of Birth is required.")]
             [DataType(DataType.Date)]
@@ -88,13 +88,25 @@ namespace FriChat.Areas.Identity.Pages.Account
 
             var user = await userManager.FindByIdAsync(userId);
 
-            string profilePictureUrl = Input.ProfilePictureUrl ?? "images/profiles/default.jpg";
+            string profilePictureUrl ="images/profiles/default.jpg";
 
             if (Input.ProfilePictureFile != null && Input.ProfilePictureFile.Length > 0)
             {
                 var uploadedUrl = await cloudinary.UploadImageAsync(Input.ProfilePictureFile);
                 if (!string.IsNullOrEmpty(uploadedUrl))
                     profilePictureUrl = uploadedUrl; 
+            }
+
+            if (await repository.UsernameExistAsync(Input.Username))
+            {
+                ModelState.AddModelError(string.Empty, "Username already taken.");
+                return Page();
+            }
+
+            if (await repository.EmailExistAsync(user.Email))
+            {
+                ModelState.AddModelError(string.Empty, "Email already exist.");
+                return Page();
             }
 
             var appUser = new AppUser
