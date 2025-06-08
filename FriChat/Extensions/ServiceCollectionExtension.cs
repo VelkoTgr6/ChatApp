@@ -1,5 +1,6 @@
 ﻿using FriChat.Infrastructure;
 using FriChat.Infrastructure.Data.Common;
+using FriChat.Infrastructure.Services.CloudinaryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

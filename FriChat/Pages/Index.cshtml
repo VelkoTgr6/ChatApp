@@ -4,7 +4,81 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .chat-layout {
+        display: flex;
+        height: 80vh;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 2rem auto;
+        max-width: 900px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .user-list {
+        width: 250px;
+        background: #f7f7f7;
+        border-right: 1px solid #ddd;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+    .chat-window {
+        flex: 1;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+    .user-list h3 {
+        margin-top: 0;
+    }
+    .user-list ul {
+        list-style: none;
+        padding: 0;
+    }
+    .user-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+    }
+    .user-list li:last-child {
+        border-bottom: none;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+    }
+    .chat-input {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .chat-input input {
+        flex: 1;
+        padding: 0.5rem;
+    }
+</style>
+
+<div class="chat-layout">
+    <div class="user-list">
+        <h3>All Users</h3>
+        <ul>
+            <li>User 1</li>
+            <li>User 2</li>
+            <li>User 3</li>
+            <!-- Replace with dynamic user list -->
+        </ul>
+    </div>
+    <div class="chat-window">
+        <div class="chat-messages">
+            <!-- Chat messages will go here -->
+            <div><strong>User 1:</strong> Hello!</div>
+            <div><strong>You:</strong> Hi there!</div>
+        </div>
+        <form class="chat-input">
+            <input type="text" placeholder="Type your message..." />
+            <button type="submit">Send</button>
+        </form>
+    </div>
 </div>

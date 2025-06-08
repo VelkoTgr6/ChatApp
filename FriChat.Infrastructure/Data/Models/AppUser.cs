@@ -60,8 +60,23 @@ namespace FriChat.Infrastructure.Data.Models
         [ForeignKey(nameof(IdentityUserId))]
         public virtual IdentityUser User { get; set; } = null!;
 
+        [Comment("Collection of messages sent by the user")]
         public virtual ICollection<Message> SentMessages { get; set; } = new List<Message>();
+
+        [Comment("Collection of messages received by the user")]
         public virtual ICollection<Message> ReceivedMessages { get; set; } = new List<Message>();
+
+        [Comment("Collection of friends of the user")]
+        public virtual ICollection<AppUser> Friends { get; set; } = new List<AppUser>();
+
+        [Comment("Collection of the users who have added this user as a friend.")]
+        public virtual ICollection<AppUser> FriendOf { get; set; } = new List<AppUser>();
+
+        [Comment("Collection of friend requests sent by the user")]
+        public virtual ICollection<AppUser> FriendRequests { get; set; } = new List<AppUser>();
+
+        [Comment("Collection of friend requests received by the user")]
+        public virtual ICollection<AppUser> ReceivedFriendRequests { get; set; } = new List<AppUser>();
     }
 
 }
