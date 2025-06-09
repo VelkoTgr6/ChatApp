@@ -61,6 +61,26 @@ namespace FriChat.Core.Services
             return userFriends;
         }
 
+        public async Task<IEnumerable<UserSearchFormViewModel>> SearchUsersAsync(string searchTerm, int userId)
+        {
+            var users = new List<UserSearchFormViewModel>();
+            var searchTermLower = searchTerm.ToLower();
+
+            return await repository.AllAsReadOnly<AppUser>()
+                .Where(u => (u.UserName.ToLower().Contains(searchTermLower) || u.FirstName.ToLower().Contains(searchTermLower) || 
+                    u.LastName.ToLower().Contains(searchTermLower)) && u.Id != userId)
+                .Select(u => new UserSearchFormViewModel
+                {
+                    UserId = u.Id,
+                    UserName = u.UserName,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    ProfilePictureUrl = u.ProfilePicturePath,
+                    IsOnline = false
+                })
+                .ToListAsync();
+        }
+
         //public async Task<int> GetUserIdAsync(string id)
         //{
         //    return await repository.GetUserIdByIdentityIdAsync(User.GetId().ToString());

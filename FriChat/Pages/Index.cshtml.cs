@@ -28,6 +28,9 @@ namespace FriChat.Pages
         public int UserId { get; set; }
         public IEnumerable<FriendsFormViewModed> FriendsList { get; set; } = Enumerable.Empty<FriendsFormViewModed>();
 
+        [BindProperty(SupportsGet = true)]
+        public string SearchTerm { get; set; }
+        public IEnumerable<UserSearchFormViewModel> SearchResults { get; set; } = Enumerable.Empty<UserSearchFormViewModel>();
         public async Task<int> GetUserIdAsync()
         {
             return await repository.GetUserIdByIdentityIdAsync(User.GetId().ToString());
@@ -38,6 +41,14 @@ namespace FriChat.Pages
             ReturnUrl = returnUrl ??= Url.Content("~/");
             UserId = await GetUserIdAsync();
             FriendsList = await appUserService.GetFriendsListAsync(UserId);
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                SearchResults = await appUserService.SearchUsersAsync(SearchTerm,UserId);
+            }
+            else
+            {
+                SearchResults = Enumerable.Empty<UserSearchFormViewModel>();
+            }
         }
 
         public IActionResult OnPost(string returnUrl = null)
