@@ -19,4 +19,49 @@ html {
 
 body {
   margin-bottom: 60px;
+  background-color: #222 !important;
+  color: #FFD600 !important;
+}
+
+.navbar {
+    background-color: #303030 !important;
+    border-color: #FFD600 !important;
+}
+
+.navbar-brand, .nav-link, .navbar-toggler-icon {
+  color: #fff !important;
+  font-weight: bold !important;
+}
+
+.footer, .border-top {
+  background-color: #222 !important;
+  border-color: #FFD600 !important;
+}
+
+.navbar-brand, .nav-link, .footer, .text-muted, .navbar-toggler-icon {
+  color: #FFD600 !important;
+}
+
+a, a:visited, a.nav-link, a.navbar-brand {
+  color: white !important;
+}
+
+a:hover, a:focus {
+  color: #fff700 !important;
+}
+
+.btn, .btn-primary, .btn-secondary {
+  background-color: #FFD600 !important;
+  color: #000 !important;
+  border: none;
+}
+
+input, textarea, select, .form-control {
+  background-color: #222 !important;
+  color: #FFD600 !important;
+  border-color: #FFD600 !important;
+}
+
+.border-bottom, .box-shadow {
+  border-color: #FFD600 !important;
 }

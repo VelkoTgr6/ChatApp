@@ -14,18 +14,6 @@ namespace FriChat.Infrastructure
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Message>()
-                .HasOne(m => m.Sender)
-                .WithMany(u => u.SentMessages)
-                .HasForeignKey(m => m.SenderId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Message>()
-                .HasOne(m => m.Receiver)
-                .WithMany(u => u.ReceivedMessages)
-                .HasForeignKey(m => m.ReceiverId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<AppUser>()
                 .HasMany(u => u.Friends)
                 .WithMany(u => u.FriendOf)
@@ -67,10 +55,23 @@ namespace FriChat.Infrastructure
                     j.HasKey("RequestingUserId", "RequestedUserId");
                     j.ToTable("UserFriendRequests");
                 });
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.User)
+                .WithMany(u => u.Conversations)
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.ReceiverUser)
+                .WithMany()
+                .HasForeignKey(c => c.ReceiverUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
     }
 
 }

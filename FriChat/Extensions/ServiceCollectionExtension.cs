@@ -1,4 +1,6 @@
-﻿using FriChat.Infrastructure;
+﻿using FriChat.Core.Contracts;
+using FriChat.Core.Services;
+using FriChat.Infrastructure;
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Services.CloudinaryServices;
 using Microsoft.AspNetCore.Identity;
@@ -18,6 +20,7 @@ namespace FriChat.Extensions
                 var apiSecret = configuration["Cloudinary:ApiSecret"] ?? throw new InvalidOperationException("ApiSecret not configured.");
                 return new CloudinaryService(cloudName, apiKey, apiSecret);
             });
+            services.AddScoped<IAppUserService, AppUserService>();
 
             return services;
         }

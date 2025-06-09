@@ -9,5 +9,8 @@ namespace FriChat.Infrastructure.Data.Common
         Task<IdentityUser?> GetIdentityUserByIdAsync(string id);
         Task<bool> EmailExistAsync(string email);
         Task<bool> UsernameExistAsync(string username);
+        Task<int> GetUserIdByIdentityIdAsync(string id);
+        IQueryable<T> AllAsReadOnly<T>() where T : class;
+        IQueryable<T> All<T>() where T : class;
     }
 }

@@ -37,9 +37,27 @@ namespace FriChat.Infrastructure.Data.Common
             return await DbSet<AppUser>().AnyAsync(u => u.Email == email && u.IsDeleted == false);
         }
 
-        public Task<bool> UsernameExistAsync(string username)
+        public async Task<bool> UsernameExistAsync(string username)
         {
-            return DbSet<AppUser>().AnyAsync(u => u.UserName == username && u.IsDeleted == false);
+            return await DbSet<AppUser>().AnyAsync(u => u.UserName == username && u.IsDeleted == false);
+        }
+
+        public IQueryable<T> AllAsReadOnly<T>() where T : class
+        {
+            return DbSet<T>().AsNoTracking();
+        }
+
+        public IQueryable<T> All<T>() where T : class
+        {
+            return DbSet<T>();
+        }
+
+        public async Task<int> GetUserIdByIdentityIdAsync(string id)
+        {
+            return await DbSet<AppUser>()
+                .Where(u => u.IdentityUserId == id && u.IsDeleted == false)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
         }
     }
 }

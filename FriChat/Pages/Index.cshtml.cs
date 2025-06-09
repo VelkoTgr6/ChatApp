@@ -1,20 +1,54 @@
+using FriChat.Core.Contracts;
+using FriChat.Core.Models.AppUser;
+using FriChat.Infrastructure.Data.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Security.Claims;
 
 namespace FriChat.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
+        private readonly ILogger<IndexModel> logger;
+        private readonly IRepository repository;
+        private readonly IAppUserService appUserService;
 
-        public IndexModel(ILogger<IndexModel> logger)
+        public IndexModel(
+            ILogger<IndexModel> _logger,
+            IRepository _repository,
+            IAppUserService _appUserService)
         {
-            _logger = logger;
+            logger = _logger;
+            repository = _repository;
+            appUserService = _appUserService;
         }
 
-        public void OnGet()
-        {
+        [BindProperty]
+        public string ReturnUrl { get; set; } = string.Empty;
+        public int UserId { get; set; }
+        public IEnumerable<FriendsFormViewModed> FriendsList { get; set; } = Enumerable.Empty<FriendsFormViewModed>();
 
+        public async Task<int> GetUserIdAsync()
+        {
+            return await repository.GetUserIdByIdentityIdAsync(User.GetId().ToString());
+        }
+
+        public async Task OnGetAsync(string returnUrl)
+        {
+            ReturnUrl = returnUrl ??= Url.Content("~/");
+            UserId = await GetUserIdAsync();
+            FriendsList = await appUserService.GetFriendsListAsync(UserId);
+        }
+
+        public IActionResult OnPost(string returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
+            // Your post logic here
+            return RedirectToPage("./Index", new { returnUrl });
         }
     }
 }
