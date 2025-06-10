@@ -29,7 +29,7 @@ namespace FriChat.Infrastructure.Data.Common
         public async Task<IdentityUser?> GetIdentityUserByIdAsync(string id)
         {
             var user = await DbSet<IdentityUser>().FirstOrDefaultAsync(u => u.Id == id);
-            return user; // Returns null if not found, caller can handle gracefully
+            return user; // Returns null if not found
         }
 
         public async Task<bool> EmailExistAsync(string email)

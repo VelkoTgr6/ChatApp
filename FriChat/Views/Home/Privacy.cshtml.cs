@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace FriChat.Pages
+namespace FriChat.Views.Home
 {
     public class PrivacyModel : PageModel
     {

@@ -6,6 +6,8 @@ namespace FriChat.Core.Contracts
     {
         Task<IEnumerable<FriendsFormViewModed>> GetFriendsListAsync(int userId);
         Task<IEnumerable<UserSearchFormViewModel>> SearchUsersAsync(string searchTerm,int userId);
+        Task<int> GetUserIdAsync(string identityId);
+
         //Task<int> GetUserIdAsync(string id);
     }
 }

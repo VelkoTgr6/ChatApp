@@ -3,6 +3,7 @@ using FriChat.Core.Models.AppUser;
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FriChat.Core.Services
 {
@@ -61,6 +62,14 @@ namespace FriChat.Core.Services
             return userFriends;
         }
 
+        public async Task<int> GetUserIdAsync(string identityId)
+        {
+            return await repository.AllAsReadOnly<AppUser>()
+                .Where(s => s.IdentityUserId == identityId)
+                .Select(s => s.Id)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<UserSearchFormViewModel>> SearchUsersAsync(string searchTerm, int userId)
         {
             var users = new List<UserSearchFormViewModel>();
@@ -81,9 +90,5 @@ namespace FriChat.Core.Services
                 .ToListAsync();
         }
 
-        //public async Task<int> GetUserIdAsync(string id)
-        //{
-        //    return await repository.GetUserIdByIdentityIdAsync(User.GetId().ToString());
-        //}
     }
 }

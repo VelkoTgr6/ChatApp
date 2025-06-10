@@ -122,6 +122,7 @@ namespace FriChat.Areas.Identity.Pages.Account
                 LastLogin = DateTime.UtcNow,
                 ProfilePicturePath = profilePictureUrl ?? "images/profiles/default.jpg", // Default profile picture if not provided
             };
+            await userManager.AddToRoleAsync(user, "User");
 
             await repository.AddAsync(appUser); // Save changes to the database
             await repository.SaveChangesAsync();

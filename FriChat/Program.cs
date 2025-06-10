@@ -46,7 +46,6 @@ namespace FriChat
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -55,7 +54,37 @@ namespace FriChat
 
             app.UseRouting();
 
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+
             app.UseAuthentication();
+
+            app.Use(async (context, next) =>
+            {
+                var path = context.Request.Path.Value?.ToLowerInvariant();
+
+                if (!context.User.Identity.IsAuthenticated && context.Request.Path == "/")
+                {
+                    // Only redirect to login if not already on the login page
+                    if (path != "/identity/account/login")
+                    {
+                        context.Response.Redirect("/Identity/Account/Login");
+                        return;
+                    }
+                }
+                else if (context.User.IsInRole("User"))
+                {
+                    // Only redirect to /AppUser/Index if not already there
+                    if (path != "/appuser/index")
+                    {
+                        context.Response.Redirect("/AppUser/Index");
+                        return;
+                    }
+                }
+
+                await next();
+            });
 
             app.UseAuthorization();
 
