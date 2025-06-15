@@ -3,7 +3,6 @@ using FriChat.Core.Models.AppUser;
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace FriChat.Core.Services
 {
@@ -15,6 +14,37 @@ namespace FriChat.Core.Services
         {
             repository = _repository;
         }
+
+        public async Task<int> AddFriendToUserAsync(int userId, int friendId)
+        {
+            var user = await repository.AllAsReadOnly<AppUser>()
+                .FirstOrDefaultAsync(u => u.Id == userId && u.IsDeleted == false);
+
+            var friend = await repository.AllAsReadOnly<AppUser>()
+                .FirstOrDefaultAsync(u => u.Id == friendId && u.IsDeleted == false && 
+                    (!u.Friends.Any(f => f.Id == userId) || !u.FriendRequests.Any(f=>f.Id == userId)));
+
+            if (user == null || friend == null)
+            {
+                // Return -1 to indicate that either user or friend does not exist
+                return -1;
+            }
+
+            var model = new AddFriendFormModel
+            {
+                UserId = userId,
+                FriendId = friendId
+            };
+
+            user.FriendRequests.Add(friend);
+
+            friend.ReceivedFriendRequests.Add(user);
+
+            await repository.SaveChangesAsync();
+
+            return userId;
+        }
+
         public async Task<IEnumerable<FriendsFormViewModed>> GetFriendsListAsync(int userId)
         {
             var user = await repository.AllAsReadOnly<AppUser>()
@@ -72,6 +102,11 @@ namespace FriChat.Core.Services
 
         public async Task<IEnumerable<UserSearchFormViewModel>> SearchUsersAsync(string searchTerm, int userId)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm) || userId <= 0)
+            {
+                return new List<UserSearchFormViewModel>();
+            }
+
             var users = new List<UserSearchFormViewModel>();
             var searchTermLower = searchTerm.ToLower();
 
@@ -85,7 +120,8 @@ namespace FriChat.Core.Services
                     FirstName = u.FirstName,
                     LastName = u.LastName,
                     ProfilePictureUrl = u.ProfilePicturePath,
-                    IsOnline = false
+                    IsOnline = false,
+                    SearchTerm = searchTerm
                 })
                 .ToListAsync();
         }

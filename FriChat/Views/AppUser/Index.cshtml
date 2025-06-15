@@ -5,41 +5,14 @@
 }
 <link rel="stylesheet" href="~/css/index.css" />
 
-<form method="get" action="/AppUser/Index">
-    <input type="text" name="searchTerm" />
+@await Html.PartialAsync("_SearchUserPartial", Model.UserSearchFormViewModel)
+
+<form method="get" action="/AppUser/SearchUserPartial">
+    <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search users..." />
     <button type="submit">Search</button>
 </form>
 
-@if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
-{
-    <div>
-        <h4>Search Results</h4>
-        <ul>
-            @foreach (var user in Model.SearchResults)
-            {
-                <li>
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <img src="@user.ProfilePictureUrl" alt="Profile" style="width:30px; height:30px; border-radius:50%; object-fit:cover;" />
-                        <span style="
-                                    display: inline-block;
-                                    width: 9px;
-                                    height: 9px;
-                                    border-radius: 50%;
-                                    background-color: @(user.IsOnline ? "#4caf50" : "#f44336");
-                                "></span>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="font-weight: bold;">@user.UserName</span>
-                            <span style="color: #bbb; font-size: 0.95em;">#@user.FirstName @user.LastName</span>
-                        </div>
-                    </div>
-                </li>
-            }
-        </ul>
-    </div>
-    <form method="get" asp-page="/Index" style="display:inline;">
-        <button type="submit" style="margin-left: 0.5rem;">Clear</button>
-    </form>
-}
+<div id="searchResults"></div>
 
 <div class="chat-layout">
     <div class="friends-list">
@@ -71,3 +44,32 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form[action="/AppUser/SearchUserPartial"]');
+            const searchInput = form.querySelector('input[name="searchTerm"]');
+            const resultsContainer = document.getElementById('searchResults');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const searchTerm = searchInput.value;
+
+                fetch(`/AppUser/SearchUserPartial?searchTerm=${encodeURIComponent(searchTerm)}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    resultsContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    resultsContainer.innerHTML = '<div style="color:red;">Error loading results.</div>';
+                });
+            });
+        });
+    </script>
+}

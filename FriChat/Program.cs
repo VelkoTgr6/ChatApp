@@ -75,8 +75,8 @@ namespace FriChat
                 }
                 else if (context.User.IsInRole("User"))
                 {
-                    // Only redirect to /AppUser/Index if not already there
-                    if (path != "/appuser/index")
+                    // Only redirect if the user is at the root ("/")
+                    if (path == "/")
                     {
                         context.Response.Redirect("/AppUser/Index");
                         return;

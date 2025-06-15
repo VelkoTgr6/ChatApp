@@ -21,28 +21,86 @@ namespace FriChat.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string returnUrl = null, string searchTerm = null)
+        public async Task<IActionResult> Index(string returnUrl = null)
         {
             var model = new AppUserIndexPageViewModel
             {
                 ReturnUrl = returnUrl ?? Url.Content("~/"),
-                SearchTerm = searchTerm
             };
 
             model.UserId = await appUserService.GetUserIdAsync(User.GetId());
             model.FriendsList = await appUserService.GetFriendsListAsync(model.UserId);
 
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                model.SearchResults = await appUserService.SearchUsersAsync(searchTerm, model.UserId);
-                searchTerm = string.Empty;
-            }
-            else
-            {
-                model.SearchResults = Enumerable.Empty<UserSearchFormViewModel>();
-            }
+            logger.LogInformation(
+                "Index method called with UserId: {UserId}, ReturnUrl: {ReturnUrl}, SearchTerm: {SearchTerm}",
+                model.UserId, model.ReturnUrl, model.SearchTerm);
 
             return View(model);
         }
+        [HttpGet]
+        public async Task<IActionResult> SearchUserPartial(string searchTerm)
+        {
+            logger.LogInformation("SearchUserPartial called with searchTerm: {searchTerm}", searchTerm);
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+
+            var model = new UserSearchFormViewModel
+            {
+                UserId = userId,
+                SearchTerm = searchTerm,
+            };
+
+            ViewBag.hasSearched = true;
+
+            if (userId <= 0)
+            {
+                ModelState.AddModelError(string.Empty, "User not found.");
+                return View("Index", new AppUserIndexPageViewModel
+                {
+                    ReturnUrl = Url.Content("~/"),
+                    UserId = 0,
+                    FriendsList = Enumerable.Empty<FriendsFormViewModed>()
+                });
+            }
+            var searchResults = await appUserService.SearchUsersAsync(searchTerm, userId);
+
+            
+            return PartialView("_SearchUserPartial", searchResults);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AddFriend()
+        {
+            var model = new AddFriendFormModel
+            {
+                UserId = await appUserService.GetUserIdAsync(User.GetId())
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddFriend(int friendId)
+        {
+            if (friendId <= 0)
+            {
+                return BadRequest("Invalid friend ID.");
+            }
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+            if (userId <= 0)
+            {
+                return NotFound("User not found.");
+            }
+            var result = await appUserService.AddFriendToUserAsync(userId, friendId);
+            if (result > 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return BadRequest("Failed to add friend.");
+        }
+
+        //[HttpPost]
+        //public async Task<IActionResult> AddFriend()
+        //{
+
+        //}
     }
 }

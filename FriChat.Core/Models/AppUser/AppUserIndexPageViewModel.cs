@@ -7,5 +7,7 @@
         public IEnumerable<FriendsFormViewModed> FriendsList { get; set; } = new List<FriendsFormViewModed>();
         public string SearchTerm { get; set; }
         public IEnumerable<UserSearchFormViewModel> SearchResults { get; set; } = new List<UserSearchFormViewModel>();
+        public UserSearchFormViewModel ? UserSearchFormViewModel { get; set; }
     }
+
 }

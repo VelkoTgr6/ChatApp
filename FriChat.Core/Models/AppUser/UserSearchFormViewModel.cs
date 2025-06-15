@@ -8,5 +8,7 @@
         public string LastName { get; set; } = string.Empty;
         public string ProfilePictureUrl { get; set; } = string.Empty;
         public bool IsOnline { get; set; }
+        public string SearchTerm { get; set; } = string.Empty;
+        public bool HasSearched { get; set; } = false;
     }
 }

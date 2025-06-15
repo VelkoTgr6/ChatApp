@@ -1,0 +1,48 @@
+﻿@model IEnumerable<FriChat.Core.Models.AppUser.UserSearchFormViewModel>
+
+@{
+    var hasResults = Model != null && Model.Any();
+    var hasSearched = ViewBag.HasSearched ?? false;
+}
+
+@if (hasResults)
+{
+    <div>
+        <h4>Search Results</h4>
+        <ul>
+            @foreach (var user in Model)
+            {
+                user.HasSearched = false; // return to default value
+
+                <li>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <img src="@user.ProfilePictureUrl" alt="Profile" style="width:30px; height:30px; border-radius:50%; object-fit:cover;" />
+                        <span style="
+                            display: inline-block;
+                            width: 9px;
+                            height: 9px;
+                            border-radius: 50%;
+                            background-color: @(user.IsOnline ? "#4caf50" : "#f44336");
+                        "></span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-weight: bold;">@user.UserName</span>
+                            <span style="color: #bbb; font-size: 0.95em;">#@user.FirstName @user.LastName</span>
+                        </div>
+                        <div class="user-search-result">
+                            <form asp-controller="AppUser" asp-action="AddFriend" method="post" style="display:inline;">
+                                <input type="hidden" name="friendId" value="@user.UserId" />
+                                <button type="submit" class="btn btn-primary">Add Friend</button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+}
+else if (hasSearched)
+{
+    <div class="text-danger" style="margin-top:1rem;">
+        No users found matching your search.
+    </div>
+}
