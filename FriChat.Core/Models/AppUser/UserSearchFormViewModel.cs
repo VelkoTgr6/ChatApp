@@ -10,5 +10,8 @@
         public bool IsOnline { get; set; }
         public string SearchTerm { get; set; } = string.Empty;
         public bool HasSearched { get; set; } = false;
+        public bool IsFriend { get; set; } = false;
+        public bool HasSentFriendRequest { get; set; } = false;
+        public bool HasReceivedFriendRequest { get; set; } = false;
     }
 }

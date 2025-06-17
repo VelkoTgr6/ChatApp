@@ -63,7 +63,7 @@ namespace FriChat.Controllers
             }
             var searchResults = await appUserService.SearchUsersAsync(searchTerm, userId);
 
-            
+
             return PartialView("_SearchUserPartial", searchResults);
         }
 
@@ -77,6 +77,7 @@ namespace FriChat.Controllers
             return View(model);
         }
 
+        //add model error handling 
         [HttpPost]
         public async Task<IActionResult> AddFriend(int friendId)
         {
@@ -89,7 +90,7 @@ namespace FriChat.Controllers
             {
                 return NotFound("User not found.");
             }
-            var result = await appUserService.AddFriendToUserAsync(userId, friendId);
+            var result = await appUserService.AddFriendRequestToUserAsync(userId, friendId);
             if (result > 0)
             {
                 return RedirectToAction(nameof(Index));
@@ -97,10 +98,36 @@ namespace FriChat.Controllers
             return BadRequest("Failed to add friend.");
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> AddFriend()
-        //{
+        [HttpGet]
+        public async Task<IActionResult> GetFriendRequestsPartial()
+        {
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+            if (userId <= 0)
+            {
+                return NotFound("User not found.");
+            }
+            var friendRequests = await appUserService.GetUserFriendRequestsAsync(userId);
+            return PartialView("_FriendRequestsPartial", friendRequests);
+        }
 
-        //}
+        [HttpPost]
+        public async Task<IActionResult> ConfirmFriendRequest(int friendId)
+        {
+            if (friendId <= 0)
+            {
+                return BadRequest("Invalid friend ID.");
+            }
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+            if (userId <= 0)
+            {
+                return NotFound("User not found.");
+            }
+            var result = await appUserService.ConfirmFriendRequestAsync(userId, friendId);
+            if (result > 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return BadRequest("Failed to confirm friend request.");
+        }
     }
 }

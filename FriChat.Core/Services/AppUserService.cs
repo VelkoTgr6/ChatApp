@@ -15,14 +15,17 @@ namespace FriChat.Core.Services
             repository = _repository;
         }
 
-        public async Task<int> AddFriendToUserAsync(int userId, int friendId)
+        public async Task<int> AddFriendRequestToUserAsync(int userId, int friendId)
         {
-            var user = await repository.AllAsReadOnly<AppUser>()
+            var user = await repository.All<AppUser>()
+                .Include(u => u.FriendRequests)
                 .FirstOrDefaultAsync(u => u.Id == userId && u.IsDeleted == false);
 
-            var friend = await repository.AllAsReadOnly<AppUser>()
+            var friend = await repository.All<AppUser>()
+                .Include(u => u.ReceivedFriendRequests)
+                .Include(u => u.Friends)
                 .FirstOrDefaultAsync(u => u.Id == friendId && u.IsDeleted == false && 
-                    (!u.Friends.Any(f => f.Id == userId) || !u.FriendRequests.Any(f=>f.Id == userId)));
+                    (!u.Friends.Any(f => f.Id == userId) || !u.ReceivedFriendRequests.Any(f=>f.Id == userId)));
 
             if (user == null || friend == null)
             {
@@ -39,6 +42,38 @@ namespace FriChat.Core.Services
             user.FriendRequests.Add(friend);
 
             friend.ReceivedFriendRequests.Add(user);
+
+            await repository.SaveChangesAsync();
+
+            return userId;
+        }
+
+        public async Task<int> ConfirmFriendRequestAsync(int userId, int friendId)
+        {
+            var user = await repository.AllAsReadOnly<AppUser>()
+               .FirstOrDefaultAsync(u => u.Id == userId && u.IsDeleted == false);
+
+            var friend = await repository.AllAsReadOnly<AppUser>()
+                .FirstOrDefaultAsync(u => u.Id == friendId && u.IsDeleted == false &&
+                    (u.Friends.Any(f => f.Id != userId) /*|| u.FriendRequests.Any(f => f.Id != userId))*/ ));
+
+            if (user == null || friend == null)
+            {
+                // Return -1 to indicate that either user or friend does not exist
+                return -1;
+            }
+
+            var model = new AddFriendFormModel
+            {
+                UserId = userId,
+                FriendId = friendId
+            };
+
+            user.Friends.Add(friend);
+            user.FriendRequests.Remove(friend);
+
+            friend.Friends.Add(user);
+            friend.ReceivedFriendRequests.Remove(user);
 
             await repository.SaveChangesAsync();
 
@@ -92,6 +127,24 @@ namespace FriChat.Core.Services
             return userFriends;
         }
 
+        public async Task<IEnumerable<UserBasicFormViewModel>> GetUserFriendRequestsAsync(int userId)
+        {
+            var friendRequests = await repository.AllAsReadOnly<AppUser>()
+                .Where(u => u.Id == userId && u.IsDeleted == false)
+                .SelectMany(u => u.ReceivedFriendRequests)
+                .Select(f => new UserBasicFormViewModel
+                {
+                    UserId = f.Id,
+                    Username = f.UserName,
+                    FirstName = f.FirstName,
+                    LastName = f.LastName,
+                    ProfilePictureUrl = f.ProfilePicturePath
+                })
+                .ToListAsync();
+
+            return friendRequests;
+        }
+
         public async Task<int> GetUserIdAsync(string identityId)
         {
             return await repository.AllAsReadOnly<AppUser>()
@@ -107,10 +160,13 @@ namespace FriChat.Core.Services
                 return new List<UserSearchFormViewModel>();
             }
 
-            var users = new List<UserSearchFormViewModel>();
             var searchTermLower = searchTerm.ToLower();
 
-            return await repository.AllAsReadOnly<AppUser>()
+            var users = await repository.AllAsReadOnly<AppUser>()
+                .Include(u => u.Friends)
+                .Include(u => u.ReceivedFriendRequests)
+                .Include(u => u.FriendRequests)
+                .Where(u => u.IsDeleted == false)
                 .Where(u => (u.UserName.ToLower().Contains(searchTermLower) || u.FirstName.ToLower().Contains(searchTermLower) || 
                     u.LastName.ToLower().Contains(searchTermLower)) && u.Id != userId)
                 .Select(u => new UserSearchFormViewModel
@@ -121,9 +177,14 @@ namespace FriChat.Core.Services
                     LastName = u.LastName,
                     ProfilePictureUrl = u.ProfilePicturePath,
                     IsOnline = false,
-                    SearchTerm = searchTerm
+                    SearchTerm = searchTerm,
+                    HasReceivedFriendRequest = u.ReceivedFriendRequests.Any(f => f.Id == userId),
+                    HasSentFriendRequest = u.FriendRequests.Any(f => f.Id == userId),
+                    IsFriend = u.Friends.Any(f => f.Id == userId)
                 })
                 .ToListAsync();
+
+            return users;
         }
 
     }

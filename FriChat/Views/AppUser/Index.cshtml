@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="~/css/index.css" />
 
 @await Html.PartialAsync("_SearchUserPartial", Model.UserSearchFormViewModel)
+@await Html.PartialAsync("_FriendRequestsPartial", Model.UserBasicFormViewModel)
 
 <form method="get" action="/AppUser/SearchUserPartial">
     <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search users..." />
@@ -15,8 +16,19 @@
 <div id="searchResults"></div>
 
 <div class="chat-layout">
-    <div class="friends-list">
-        <h3>Friends</h3>
+    <div class="friends-list" style="position: relative;">
+        <form method="get" action="/AppUser/GetFriendRequestsPartial">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <h3>Friends</h3>
+                <button id="friendRequestBtn" type="submit" style="position: relative; font-size : 0.85rem">
+                    Friend Requests
+                    <span id="friendRequestCount" style="background: #e74c3c; color: #fff; border-radius: 50%; padding: 0.2em 0.6em; font-size: 0.9em; position: absolute; top: -10px; right: -10px;">
+                        @Model.FriendRequestsCount
+                    </span>
+                </button>
+            </div>
+            <div id="friendRequestPartialContainer" style="display:none; position:absolute; top: 45px; left: 0; right: 0; z-index:1000; width: 100%;"></div>
+        </form>
         <ul>
             @foreach (var friend in Model.FriendsList)
             {
@@ -45,31 +57,5 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.querySelector('form[action="/AppUser/SearchUserPartial"]');
-            const searchInput = form.querySelector('input[name="searchTerm"]');
-            const resultsContainer = document.getElementById('searchResults');
-
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const searchTerm = searchInput.value;
-
-                fetch(`/AppUser/SearchUserPartial?searchTerm=${encodeURIComponent(searchTerm)}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    resultsContainer.innerHTML = html;
-                })
-                .catch(error => {
-                    resultsContainer.innerHTML = '<div style="color:red;">Error loading results.</div>';
-                });
-            });
-        });
-    </script>
+<script src="~/js/searchUsers.js"></script>
 }

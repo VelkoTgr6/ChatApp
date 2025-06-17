@@ -18,21 +18,36 @@
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                         <img src="@user.ProfilePictureUrl" alt="Profile" style="width:30px; height:30px; border-radius:50%; object-fit:cover;" />
                         <span style="
-                            display: inline-block;
-                            width: 9px;
-                            height: 9px;
-                            border-radius: 50%;
-                            background-color: @(user.IsOnline ? "#4caf50" : "#f44336");
-                        "></span>
+                                            display: inline-block;
+                                            width: 9px;
+                                            height: 9px;
+                                            border-radius: 50%;
+                                            background-color: @(user.IsOnline ? "#4caf50" : "#f44336");
+                                        "></span>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <span style="font-weight: bold;">@user.UserName</span>
                             <span style="color: #bbb; font-size: 0.95em;">#@user.FirstName @user.LastName</span>
                         </div>
                         <div class="user-search-result">
-                            <form asp-controller="AppUser" asp-action="AddFriend" method="post" style="display:inline;">
-                                <input type="hidden" name="friendId" value="@user.UserId" />
-                                <button type="submit" class="btn btn-primary">Add Friend</button>
-                            </form>
+                            @if (user.IsFriend)
+                            {
+                                <!-- Optionally show something for friends -->
+                            }
+                            else if (user.HasSentFriendRequest)
+                            {
+                                <button class="btn btn-secondary" disabled style="pointer-events: none; opacity: 0.65;">Received</button>
+                            }
+                            else if (user.HasReceivedFriendRequest)
+                            {
+                                <button class="btn btn-secondary" disabled style="pointer-events: none; opacity: 0.65;">Sent</button>
+                            }
+                            else
+                            {
+                                <form asp-controller="AppUser" asp-action="AddFriend" method="post" style="display:inline;">
+                                    <input type="hidden" name="friendId" value="@user.UserId" />
+                                    <button type="submit" class="btn btn-primary">Add Friend</button>
+                                </form>
+                            }
                         </div>
                     </div>
                 </li>
