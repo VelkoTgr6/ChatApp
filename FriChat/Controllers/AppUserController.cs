@@ -68,7 +68,7 @@ namespace FriChat.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> AddFriend()
+        public async Task<IActionResult> SendFriendRequest()
         {
             var model = new AddFriendFormModel
             {
@@ -78,8 +78,11 @@ namespace FriChat.Controllers
         }
 
         //add model error handling 
+        // ||
+        // VV
+
         [HttpPost]
-        public async Task<IActionResult> AddFriend(int friendId)
+        public async Task<IActionResult> SendFriendRequest(int friendId)
         {
             if (friendId <= 0)
             {
@@ -111,6 +114,7 @@ namespace FriChat.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmFriendRequest(int friendId)
         {
             if (friendId <= 0)
@@ -128,6 +132,27 @@ namespace FriChat.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return BadRequest("Failed to confirm friend request.");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeclineFriendRequest(int friendId)
+        {
+            if (friendId <= 0)
+            {
+                return BadRequest("Invalid friend ID.");
+            }
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+            if (userId <= 0)
+            {
+                return NotFound("User not found.");
+            }
+            var result = await appUserService.DeclineFriendRequestAsync(userId, friendId);
+            if (result > 0)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return BadRequest("Failed to reject friend request.");
         }
     }
 }

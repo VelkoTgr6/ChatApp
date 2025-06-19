@@ -17,49 +17,24 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.text())
             .then(html => {
                 resultsContainer.innerHTML = html;
+                resultsContainer.style.display = 'block';
             })
             .catch(error => {
                 resultsContainer.innerHTML = '<div style="color:red;">Error loading results.</div>';
+                resultsContainer.style.display = 'block';
             });
 
         // Friend request button logic
     });
 
-    // Friend request button logic
-    const friendRequestBtn = document.getElementById('friendRequestBtn');
-    const friendRequestContainer = document.getElementById('friendRequestPartialContainer');
-    let friendRequestVisible = false;
-
-    friendRequestBtn.addEventListener('click', function () {
-        if (!friendRequestVisible) {
-            fetch('/AppUser/FriendRequestPartial', {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-                .then(response => response.text())
-                .then(html => {
-                    friendRequestContainer.innerHTML = html;
-                    friendRequestContainer.style.display = 'block';
-                    friendRequestVisible = true;
-                })
-                .catch(error => {
-                    friendRequestContainer.innerHTML = '<div style="color:red;">Error loading friend requests.</div>';
-                    friendRequestContainer.style.display = 'block';
-                    friendRequestVisible = true;
-                });
-        } else {
-            friendRequestContainer.style.display = 'none';
-            friendRequestVisible = false;
-        }
-    });
-
-    // Hide friend request partial when clicking outside
-    document.addEventListener('click', function (event) {
-        if (friendRequestVisible && !friendRequestBtn.contains(event.target) && !friendRequestContainer.contains(event.target)) {
-            friendRequestContainer.style.display = 'none';
-            friendRequestVisible = false;
+    // Hide resultsContainer when clicking outside
+    document.addEventListener('mousedown', function (event) {
+        if (
+            resultsContainer.style.display === 'block' &&
+            !resultsContainer.contains(event.target) &&
+            !form.contains(event.target)
+        ) {
+            resultsContainer.style.display = 'none';
         }
     });
 });

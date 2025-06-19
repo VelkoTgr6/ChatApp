@@ -43,7 +43,7 @@
                             }
                             else
                             {
-                                <form asp-controller="AppUser" asp-action="AddFriend" method="post" style="display:inline;">
+                                <form asp-controller="AppUser" asp-action="SendFriendRequest" method="post" style="display:inline;">
                                     <input type="hidden" name="friendId" value="@user.UserId" />
                                     <button type="submit" class="btn btn-primary">Add Friend</button>
                                 </form>

@@ -17,18 +17,20 @@
 
 <div class="chat-layout">
     <div class="friends-list" style="position: relative;">
-        <form method="get" action="/AppUser/GetFriendRequestsPartial">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <h3>Friends</h3>
-                <button id="friendRequestBtn" type="submit" style="position: relative; font-size : 0.85rem">
-                    Friend Requests
-                    <span id="friendRequestCount" style="background: #e74c3c; color: #fff; border-radius: 50%; padding: 0.2em 0.6em; font-size: 0.9em; position: absolute; top: -10px; right: -10px;">
-                        @Model.FriendRequestsCount
-                    </span>
-                </button>
-            </div>
-            <div id="friendRequestPartialContainer" style="display:none; position:absolute; top: 45px; left: 0; right: 0; z-index:1000; width: 100%;"></div>
-        </form>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <h3>Friends</h3>
+            <button id="friendRequestBtn" type="button" style="position: relative; font-size: 0.85rem;">
+                Friend Requests
+                <span id="friendRequestCount" style="background: #e74c3c; color: #fff; border-radius: 50%; padding: 0.2em 0.6em; font-size: 0.9em; position: absolute; top: -10px; right: -10px;">
+                    @Model.FriendRequestsCount
+                </span>
+            </button>
+        </div>
+
+        <div id="friendRequestPartialContainer"
+             style="display: none; position: absolute; top: 45px; left: 0; right: 0; z-index: 1000; width: 100%;">
+        </div>
+
         <ul>
             @foreach (var friend in Model.FriendsList)
             {
@@ -58,4 +60,5 @@
 </div>
 
 <script src="~/js/searchUsers.js"></script>
+<script src="~/js/friendRequests.js"></script>
 }

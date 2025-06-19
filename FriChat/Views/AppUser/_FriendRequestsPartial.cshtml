@@ -9,7 +9,7 @@ else
     <ul style="list-style: none; padding: 0; margin: 0;">
         @foreach (var request in Model)
         {
-            <li style="margin-bottom: 1rem;">
+            <li style="margin-bottom: 1rem;" id="friend-request-@request.UserId">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <img src="@request.ProfilePictureUrl" alt="Profile" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" />
                     <div>
@@ -17,6 +17,17 @@ else
                         <div style="font-size: 0.85em; color: #888;">
                             <span>@request.FirstName</span> <span>@request.LastName</span>
                         </div>
+                        <form class="friend-request-form" action="/AppUser/ConfirmFriendRequest" method="post" data-user-id="@request.UserId" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="friendId" value="@request.UserId" />
+                            <button type="submit" class="btn btn-primary">Confirm</button>
+                        </form>
+                        <form class="friend-request-form" action="/AppUser/DeclineFriendRequest" method="post" data-user-id="@request.UserId" style="display:inline; margin-left: 0.5rem;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="friendId" value="@request.UserId" />
+                            <button type="submit" class="btn btn-secondary">Decline</button>
+                        </form>
+                        <input name="__RequestVerificationToken" type="hidden" value="sometokenvalue" />
                     </div>
                 </div>
             </li>
