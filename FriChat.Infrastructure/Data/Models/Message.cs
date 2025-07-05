@@ -36,6 +36,13 @@ namespace FriChat.Infrastructure.Data.Models
         [Comment("Identifier of the user who received the message")]
         public int ReceiverId { get; set; }
 
+        [Required]
+        public int ConversationId { get; set; }
+
+        [ForeignKey(nameof(ConversationId))]
+        [Comment("The conversation to which this message belongs")]
+        public virtual Conversation Conversation { get; set; } = null!;
+
         [MaxLength(AttachmentUrlMaxLength)]
         [Comment("URL of the attachment, if any (e.g., image, file)")]
         public string? AttachmentUrl { get; set; }
