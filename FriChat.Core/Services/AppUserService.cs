@@ -24,8 +24,8 @@ namespace FriChat.Core.Services
             var friend = await repository.All<AppUser>()
                 .Include(u => u.ReceivedFriendRequests)
                 .Include(u => u.Friends)
-                .FirstOrDefaultAsync(u => u.Id == friendId && u.IsDeleted == false && 
-                    (!u.Friends.Any(f => f.Id == userId) || !u.ReceivedFriendRequests.Any(f=>f.Id == userId)));
+                .FirstOrDefaultAsync(u => u.Id == friendId && u.IsDeleted == false &&
+                    (!u.Friends.Any(f => f.Id == userId) || !u.ReceivedFriendRequests.Any(f => f.Id == userId)));
 
             if (user == null || friend == null)
             {
@@ -84,6 +84,72 @@ namespace FriChat.Core.Services
             return userId;
         }
 
+        public async Task<ConversationFormViewModel> CreateConversationAsync(int userId, int friendId)
+        {
+            var friendData = await repository.AllAsReadOnly<AppUser>()
+                .Where(u => u.Id == friendId && u.IsDeleted == false)
+                .Select(u => new
+                {
+                    u.UserName,
+                    u.ProfilePicturePath
+                })
+                .FirstOrDefaultAsync();
+
+            var conversationEntity = new Conversation
+            {
+                UserId = userId,
+                UserName = await repository.AllAsReadOnly<AppUser>()
+                        .Where(u => u.Id == userId && u.IsDeleted == false)
+                        .Select(u => u.UserName)
+                        .FirstAsync(),
+                ReceiverUserId = friendId,
+                ReceiverUserName = friendData.UserName,
+                IsGroupConversation = false,
+                IsDeleted = false,
+                ConversationName = friendData.UserName,
+                ConversationImageUrl = friendData.ProfilePicturePath,
+            };
+
+            await repository.AddAsync(conversationEntity);
+            await repository.SaveChangesAsync();
+
+            var loadedConversation = await repository.AllAsReadOnly<Conversation>()
+                .Include(c => c.User)
+                .Include(c => c.ReceiverUser)
+                .FirstOrDefaultAsync(c => c.Id == conversationEntity.Id);
+
+            var conversationModel = new ConversationFormViewModel
+            {
+                ConversationId = conversationEntity.Id,
+                UserId = userId,
+                ReceiverUserId = friendId,
+                UserName = conversationEntity.UserName,
+                ReceiverUserName = conversationEntity.ReceiverUserName,
+                ReceiverProfilePicturePath = loadedConversation.ReceiverUser.ProfilePicturePath,
+                IsGroupConversation = conversationEntity.IsGroupConversation,
+                UserProfilePicturePath = loadedConversation.User.ProfilePicturePath,
+                ConversationName = conversationEntity.ReceiverUserName,
+                ConversationPicturePath = conversationEntity.ConversationImageUrl,
+                NewMessage = conversationEntity.Messages
+                            .Where(m => m.SenderId == userId && m.ReceiverId == friendId)
+                            .OrderByDescending(m => m.Timestamp)
+                            .Select(m => new MessageViewModel
+                            {
+                                MessageId = m.Id,
+                                Content = m.Content,
+                                Timestamp = m.Timestamp,
+                                IsRead = m.IsRead,
+                                SenderUserId = m.SenderId,
+                                ReceiverUserId = m.ReceiverId,
+                                AttachmentType = m.Type,
+                                AttachmentUrl = m.AttachmentUrl
+                            })
+                            .FirstOrDefault(),
+            };
+
+            return conversationModel;
+        }
+
         public async Task<int> DeclineFriendRequestAsync(int userId, int friendId)
         {
             var user = await repository.All<AppUser>()
@@ -101,12 +167,6 @@ namespace FriChat.Core.Services
                 return -1;
             }
 
-            var model = new AddFriendFormModel
-            {
-                UserId = userId,
-                FriendId = friendId
-            };
-
             user.ReceivedFriendRequests.Remove(friend);
 
             friend.FriendRequests.Remove(user);
@@ -116,13 +176,82 @@ namespace FriChat.Core.Services
             return userId;
         }
 
+        public async Task<ConversationFormViewModel> GetConversationAsync(int userId, int friendId, int conversationId)
+        {
+            var newConversation = new ConversationFormViewModel();
+
+            var conversation = await repository.AllAsReadOnly<Conversation>()
+                .Where(u => u.Id == conversationId && u.IsDeleted == false)
+                .Include(c => c.Messages)
+                .Select(Conversation => new ConversationFormViewModel
+                {
+                    UserId = userId,
+                    ReceiverUserId = friendId,
+                    UserName = Conversation.User.UserName,
+                    ReceiverUserName = Conversation.ReceiverUser.UserName,
+                    ReceiverProfilePicturePath = Conversation.ReceiverUser.ProfilePicturePath,
+                    IsGroupConversation = Conversation.IsGroupConversation,
+                    ConversationId = Conversation.Id,
+                    UserProfilePicturePath = Conversation.User.ProfilePicturePath,
+                    ConversationName = Conversation.ReceiverUserName,
+                    ConversationPicturePath = Conversation.ConversationImageUrl,
+                    NewMessage = Conversation.Messages
+                        .Where(m => m.SenderId == userId && m.ReceiverId == friendId)
+                        .OrderByDescending(m => m.Timestamp)
+                        .Select(m => new MessageViewModel
+                        {
+                            MessageId = m.Id,
+                            Content = m.Content,
+                            Timestamp = m.Timestamp,
+                            IsRead = m.IsRead,
+                            SenderUserId = m.SenderId,
+                            ReceiverUserId = m.ReceiverId,
+                            AttachmentType = m.Type,
+                            AttachmentUrl = m.AttachmentUrl
+                        })
+                        .FirstOrDefault(),
+                    Messages = Conversation.Messages.Select(m => new MessageViewModel
+                    {
+                        MessageId = m.Id,
+                        Content = m.Content,
+                        Timestamp = m.Timestamp,
+                        IsRead = m.IsRead,
+                        SenderUserId = m.SenderId,
+                        ReceiverUserId = m.ReceiverId,
+                        AttachmentType = m.Type,
+                        AttachmentUrl = m.AttachmentUrl
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+
+            if (conversation == null)
+            {
+                // If the conversation does not exist, create a new one
+
+                return await CreateConversationAsync(userId, friendId);
+            }
+
+            return conversation;
+        }
+
+        public Task<int> GetConversationId(int userId, int friendId)
+        {
+            return repository.AllAsReadOnly<Conversation>()
+                .Include(c => c.User)
+                .Include(c => c.ReceiverUser)
+                .Where(c => ((c.UserId == userId && c.ReceiverUserId == friendId) ||
+                             (c.UserId == friendId && c.ReceiverUserId == userId)) &&
+                            !c.IsDeleted && !c.User.IsDeleted && !c.ReceiverUser.IsDeleted)
+                .Select(c => c.Id)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<FriendsFormViewModed>> GetFriendsListAsync(int userId)
         {
             var user = await repository.AllAsReadOnly<AppUser>()
                 .Include(u => u.Friends)
                 .FirstOrDefaultAsync(u => u.Id == userId && u.IsDeleted == false);
 
-            var userFriends= new List<FriendsFormViewModed>();
+            var userFriends = new List<FriendsFormViewModed>();
 
             if (user == null)
             {
@@ -167,12 +296,47 @@ namespace FriChat.Core.Services
             return friendRequests;
         }
 
+        public Task<int> GetUserFriendRequestsCount(int userId)
+        {
+            var count = repository.AllAsReadOnly<AppUser>()
+                .Where(u => u.Id == userId && u.IsDeleted == false)
+                .SelectMany(u => u.ReceivedFriendRequests)
+                .CountAsync();
+
+            return count;
+        }
+
         public async Task<int> GetUserIdAsync(string identityId)
         {
             return await repository.AllAsReadOnly<AppUser>()
                 .Where(s => s.IdentityUserId == identityId)
                 .Select(s => s.Id)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<MessageViewModel>> GetUserMessagesForConversationAsync(int userId, int friendId, int conversationId)
+        {
+            var messages = await repository.AllAsReadOnly<Message>()
+                .Where(m => ((m.SenderId == userId && m.ReceiverId == friendId) ||
+                            (m.SenderId == friendId && m.ReceiverId == userId)) &&
+                            m.ConversationId == conversationId)
+                .OrderByDescending(m => m.Timestamp)
+                .Take(50) // Limit to the last 50 messages
+                .OrderBy(m => m.Timestamp)
+                .Select(m => new MessageViewModel
+                {
+                    MessageId = m.Id,
+                    Content = m.Content,
+                    Timestamp = m.Timestamp,
+                    IsRead = m.IsRead,
+                    SenderUserId = m.SenderId,
+                    ReceiverUserId = m.ReceiverId,
+                    AttachmentType = m.Type,
+                    AttachmentUrl = m.AttachmentUrl
+                })
+                .ToListAsync();
+
+            return messages;
         }
 
         public async Task<IEnumerable<UserSearchFormViewModel>> SearchUsersAsync(string searchTerm, int userId)
@@ -189,7 +353,7 @@ namespace FriChat.Core.Services
                 .Include(u => u.ReceivedFriendRequests)
                 .Include(u => u.FriendRequests)
                 .Where(u => u.IsDeleted == false)
-                .Where(u => (u.UserName.ToLower().Contains(searchTermLower) || u.FirstName.ToLower().Contains(searchTermLower) || 
+                .Where(u => (u.UserName.ToLower().Contains(searchTermLower) || u.FirstName.ToLower().Contains(searchTermLower) ||
                     u.LastName.ToLower().Contains(searchTermLower)) && u.Id != userId)
                 .Select(u => new UserSearchFormViewModel
                 {

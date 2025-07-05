@@ -30,6 +30,7 @@ namespace FriChat.Controllers
 
             model.UserId = await appUserService.GetUserIdAsync(User.GetId());
             model.FriendsList = await appUserService.GetFriendsListAsync(model.UserId);
+            model.FriendRequestsCount = await appUserService.GetUserFriendRequestsCount(model.UserId);
 
             logger.LogInformation(
                 "Index method called with UserId: {UserId}, ReturnUrl: {ReturnUrl}, SearchTerm: {SearchTerm}",
@@ -153,6 +154,48 @@ namespace FriChat.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return BadRequest("Failed to reject friend request.");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetConversationPartial(int friendId)
+        {
+            if (friendId <= 0)
+            {
+                return BadRequest("Invalid friend ID.");
+            }
+
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+
+            if (userId <= 0)
+            {
+                return NotFound("User not found.");
+            }
+            var conversationId = await appUserService.GetConversationId(userId, friendId);
+
+            var conversation = await appUserService.GetConversationAsync(userId, friendId,conversationId);
+
+            if (conversation == null)
+            {
+                return NotFound("Conversation not found.");
+            }
+
+            return PartialView("_UsersConversationPartial", conversation);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUserMessagesForConversation(int friendId, int conversationId)
+        {
+            if (friendId <= 0 || conversationId <= 0)
+            {
+                return BadRequest("Invalid friend ID or conversation ID.");
+            }
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+            if (userId <= 0)
+            {
+                return NotFound("User not found.");
+            }
+            var messages = await appUserService.GetUserMessagesForConversationAsync(userId, friendId, conversationId);
+            return PartialView("_MessagesPartial", messages);
         }
     }
 }

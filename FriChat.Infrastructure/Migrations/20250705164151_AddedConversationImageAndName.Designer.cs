@@ -3,6 +3,7 @@ using System;
 using FriChat.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FriChat.Infrastructure.Migrations
 {
     [DbContext(typeof(FriChatDbContext))]
-    partial class FriChatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250705164151_AddedConversationImageAndName")]
+    partial class AddedConversationImageAndName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,6 +138,11 @@ namespace FriChat.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasComment("Username of the user receiving the conversation");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasComment("Title of the conversation");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer")

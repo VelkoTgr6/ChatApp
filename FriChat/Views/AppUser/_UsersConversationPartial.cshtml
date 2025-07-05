@@ -1,0 +1,23 @@
+﻿@model ConversationFormViewModel
+
+<div class="chat-window">
+    <div class="chat-messages">
+        @if (Model.Messages != null && Model.Messages.Any())
+        {
+            foreach (var message in Model.Messages)
+            {
+                <div>
+                    <strong>@message.SenderUserName:</strong> @message.Content
+                </div>
+            }
+        }
+        else
+        {
+            <div>No messages yet.</div>
+        }
+    </div>
+    <form asp-action="SendMessage" asp-controller="AppUser" method="post" class="chat-input">
+        <input asp-for="NewMessage" type="text" placeholder="Type your message..." autocomplete="off" />
+        <button type="submit">Send</button>
+    </form>
+</div>

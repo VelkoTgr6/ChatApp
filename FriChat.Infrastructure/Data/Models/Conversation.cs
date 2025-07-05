@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static FriChat.Infrastructure.Constants.ModelConstants;
 
 namespace FriChat.Infrastructure.Data.Models
 {
@@ -8,7 +9,15 @@ namespace FriChat.Infrastructure.Data.Models
     {
         [Key]
         [Comment("Unique identifier for the conversation")]
-        public int Id { get; set; } 
+        public int Id { get; set; }
+
+        [Required]
+        [MaxLength(ConversationNameMaxLength)]
+        public string ConversationName { get; set; } = string.Empty;
+
+        [MaxLength(AttachmentUrlMaxLength)]
+        [Comment("URL of the conversation image, if any (e.g., group chat image)")]
+        public string ? ConversationImageUrl { get; set; }
 
         [Required]
         [Comment("Identifier for the user who initiated the conversation")]
@@ -22,10 +31,7 @@ namespace FriChat.Infrastructure.Data.Models
         public int ReceiverUserId { get; set; } 
 
         [ForeignKey(nameof(ReceiverUserId))]
-        public virtual AppUser ReceiverUser { get; set; } = null!; 
-
-        [Comment("Title of the conversation")]
-        public string Title { get; set; } = string.Empty; 
+        public virtual AppUser ReceiverUser { get; set; } = null!;  
 
         [Required]
         [Comment("Username of the user who initiated the conversation")]

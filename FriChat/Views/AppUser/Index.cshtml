@@ -5,8 +5,9 @@
 }
 <link rel="stylesheet" href="~/css/index.css" />
 
-@await Html.PartialAsync("_SearchUserPartial", Model.UserSearchFormViewModel)
+@* @await Html.PartialAsync("_SearchUserPartial", Model.UserSearchFormViewModel) *@
 @await Html.PartialAsync("_FriendRequestsPartial", Model.UserBasicFormViewModel)
+
 
 <form method="get" action="/AppUser/SearchUserPartial">
     <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Search users..." />
@@ -35,7 +36,8 @@
             @foreach (var friend in Model.FriendsList)
             {
                 <li>
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;"
+                         onclick="loadUserConversation('@friend.FriendUserId')">
                         <img src="@friend.FriendProfilePicturePath" alt="Profile" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" />
                         <div>
                             <div style="font-weight: bold;">@friend.FriendUsername</div>
@@ -46,19 +48,9 @@
             }
         </ul>
     </div>
-    <div class="chat-window">
-        <div class="chat-messages">
-            <!-- Chat messages will go here -->
-            <div><strong>User 1:</strong> Hello!</div>
-            <div><strong>You:</strong> Hi there!</div>
-        </div>
-        <form class="chat-input">
-            <input type="text" placeholder="Type your message..." />
-            <button type="submit">Send</button>
-        </form>
-    </div>
-</div>
+    
+    <div id="userConversationPartialContainer" class="chat-window"></div>
 
 <script src="~/js/searchUsers.js"></script>
 <script src="~/js/friendRequests.js"></script>
-}
+<script src="~/js/conversation.js"></script>

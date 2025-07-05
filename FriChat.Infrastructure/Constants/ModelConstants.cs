@@ -39,5 +39,15 @@
         /// Message Attachment URL Maximum Length
         /// </summary>
         public const int AttachmentUrlMaxLength = 500;
+
+        /// <summary>
+        /// Conversation Name Minimum Length
+        /// </summary>
+        public const int ConversationNameMinLength = 2;
+
+        /// <summary>
+        /// Conversation Name Maximum Length
+        /// </summary>
+        public const int ConversationNameMaxLength = 100;
     }
 }

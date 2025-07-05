@@ -9,6 +9,7 @@
         public IEnumerable<UserSearchFormViewModel> SearchResults { get; set; } = new List<UserSearchFormViewModel>();
         public UserSearchFormViewModel ? UserSearchFormViewModel { get; set; }
         public IEnumerable<UserBasicFormViewModel> UserBasicFormViewModel { get; set; } = new List<UserBasicFormViewModel>();
+        public ConversationFormViewModel ? ConversationFormViewModel { get; set; }
         public int FriendRequestsCount { get; set; } = 0;
     }
 
