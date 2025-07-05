@@ -32,6 +32,8 @@ namespace FriChat
                 );
             });
 
+            builder.Services.AddSignalR();
+
             builder.Services.AddControllersWithViews(options =>
             {
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
@@ -89,6 +91,8 @@ namespace FriChat
             app.UseAuthorization();
 
             app.MapRazorPages();
+
+            app.MapHub<ChatHub>("/chathub");
 
             app.Run();
         }

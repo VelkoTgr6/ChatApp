@@ -1,0 +1,16 @@
+﻿<div class="chat-window">
+    <div class="chat-messages">
+        @if (Model.Messages != null && Model.Messages.Any())
+        {
+            foreach (var message in Model.Messages)
+            {
+                <div>
+                    <strong>@message.SenderUserName:</strong> @message.Content
+                </div>
+            }
+        }
+        else
+        {
+            <div>No messages yet.</div>
+        }
+    </div>
