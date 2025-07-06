@@ -88,6 +88,24 @@ namespace FriChat
                 await next();
             });
 
+            // Log all 400 Bad Request errors and form data for debugging
+            app.Use(async (context, next) =>
+            {
+                await next();
+                if (context.Response.StatusCode == 400)
+                {
+                    var logger = context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("400Logger");
+                    logger.LogWarning("400 Bad Request for {Path}. Method: {Method}", context.Request.Path, context.Request.Method);
+                    if (context.Request.HasFormContentType)
+                    {
+                        foreach (var key in context.Request.Form.Keys)
+                        {
+                            logger.LogWarning("Form field: {Key} = {Value}", key, context.Request.Form[key]);
+                        }
+                    }
+                }
+            });
+
             app.UseAuthorization();
 
             app.MapRazorPages();

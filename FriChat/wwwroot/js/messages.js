@@ -38,20 +38,31 @@
         e.preventDefault();
         const input = document.getElementById('messageInput');
         const message = input.value;
-        if (message.trim() === "") return;
-        const formData = new FormData(this);
-        const tokenInput = this.querySelector('input[name="__RequestVerificationToken"]');
-        if (tokenInput) {
-            formData.append('__RequestVerificationToken', tokenInput.value);
+        const friendId = this.querySelector('input[name="friendId"]').value;
+        const conversationId = this.querySelector('input[name="conversationId"]').value;
+        // No need to get tokenInput or append it manually
+        if (!friendId || !conversationId || message.trim() === "") {
+            alert('All fields are required.');
+            return;
         }
+        const formData = new FormData(this); // This will include the anti-forgery token automatically
         fetch(this.action, {
             method: 'POST',
             body: formData,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
+        .then(async response => {
+            let result;
+            try {
+                result = await response.json();
+            } catch (err) {
+                // If not JSON, show error
+                throw new Error('Server returned an invalid response.');
+            }
+            if (!response.ok) {
+                throw new Error(result && result.error ? result.error : 'Network response was not ok');
+            }
+            return result;
         })
         .then(result => {
             if (result.success && result.html) {
@@ -59,12 +70,10 @@
                 connection.invoke("SendMessage", conversationId, userName, message);
                 input.value = "";
             } else if (result.error) {
-                // Optionally show error to user
                 alert(result.error);
             }
         })
         .catch(error => {
-            // Optionally show error to user
             alert('Error sending message: ' + error.message);
         });
     });
