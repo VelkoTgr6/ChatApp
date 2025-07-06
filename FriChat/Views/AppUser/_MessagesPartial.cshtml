@@ -1,100 +1,12 @@
 ﻿@model IEnumerable<MessageViewModel>
 
-<style>
-    .chat-window {
-        padding: 0;
-        border-radius: 8px;
-        max-width: 600px;
-        margin: 0 auto;
-        height: 500px; /* Set a fixed height for the chat window */
-        display: flex;
-        flex-direction: column;
-        background: #f8f8f8;
-    }
-
-    #messagesContainer {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        flex: 1 1 auto;
-        overflow-y: auto;
-        padding: 10px 0; /* Remove side padding for edge alignment */
-        height: 100%;
-    }
-
-    .message-row {
-        display: flex;
-        align-items: flex-end;
-        justify-content: flex-start;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .message-row.sent {
-        flex-direction: row-reverse;
-        justify-content: flex-end;
-    }
-
-    .message-bubble {
-        max-width: 60%;
-        padding: 10px 16px;
-        border-radius: 18px;
-        margin: 0 0.5vw; /* Reduce margin to move closer to edge */
-        position: relative;
-        background: #e0eaff;
-        color: #222;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.07);
-        word-break: break-word;
-    }
-
-    .message-row.sent .message-bubble {
-        background: #c4c4c3;
-        color: #222;
-        border-bottom-right-radius: 4px;
-        border-bottom-left-radius: 18px;
-        margin-right: 0.5vw;
-        margin-left: 0;
-    }
-
-    .message-row.received .message-bubble {
-        background: #FFD600;
-        color: #222;
-        border-bottom-left-radius: 4px;
-        border-bottom-right-radius: 18px;
-        margin-left: 0.5vw;
-        margin-right: 0;
-    }
-
-    .profile-pic {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #222;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-    }
-
-    .message-meta {
-        font-size: 0.8em;
-        color: #888;
-        margin-top: 2px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .seen-indicator {
-        font-size: 1em;
-        color: #4caf50;
-        margin-left: 2px;
-    }
-</style>
+<link rel="stylesheet" href="~/css/chatBubbles.css" />
 
 <div class="chat-window">
     <div id="messagesContainer">
         @if (Model != null && Model.Any())
         {
-            foreach (var message in Model)
+            foreach (var message in Model.OrderByDescending(m=>m.Timestamp))
             {
                 var isSent = message.SenderUserId == message.UserId;
                 var profilePic = isSent ? message.UserProfilePicturePath : message.ReceiverProfilePicturePath;
