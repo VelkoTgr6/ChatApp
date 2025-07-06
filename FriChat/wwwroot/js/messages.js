@@ -1,4 +1,23 @@
-﻿function initMessages() {
+﻿function convertMessageTimestampsToLocal() {
+    document.querySelectorAll('.message-timestamp').forEach(function (el) {
+        const utc = el.getAttribute('data-utc');
+        if (utc) {
+            const local = new Date(utc);
+            // Use the user's locale, show date and time, but no seconds
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false // Remove this line if you want 12-hour format where appropriate
+            };
+            el.textContent = local.toLocaleString(undefined, options);
+        }
+    });
+}
+
+function initMessages() {
     const container = document.getElementById('userConversationPartialContainer');
     const chatWindow = container ? container.querySelector('.chat-window') : null;
     if (!chatWindow) return;
@@ -16,6 +35,7 @@
                 const messagesContainer = document.getElementById('messagesContainer');
                 if (messagesContainer) {
                     messagesContainer.innerHTML = html;
+                    convertMessageTimestampsToLocal(); // Convert timestamps after loading
                 }
             });
     }
@@ -67,6 +87,7 @@
         .then(result => {
             if (result.success && result.html) {
                 document.getElementById('messagesContainer').innerHTML = result.html;
+                convertMessageTimestampsToLocal(); // Convert timestamps after sending
                 connection.invoke("SendMessage", conversationId, userName, message);
                 input.value = "";
             } else if (result.error) {

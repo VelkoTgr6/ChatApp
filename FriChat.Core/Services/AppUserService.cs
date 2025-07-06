@@ -349,7 +349,9 @@ namespace FriChat.Core.Services
         public async Task<int> CreateMessageAsync(int userId, int friendId, string messageContent, int conversationId)
         {
             var encryptedContent = EncryptionHelper.Encrypt(messageContent);
+            var timestamp = DateTime.Now;
 
+            
             var message = new Message
             {
                 SenderId = userId,

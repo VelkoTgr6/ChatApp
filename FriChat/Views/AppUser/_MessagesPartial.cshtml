@@ -2,32 +2,44 @@
 
 <style>
     .chat-window {
-        padding: 10px;
+        padding: 0;
         border-radius: 8px;
         max-width: 600px;
         margin: 0 auto;
+        height: 500px; /* Set a fixed height for the chat window */
+        display: flex;
+        flex-direction: column;
+        background: #f8f8f8;
     }
 
     #messagesContainer {
         display: flex;
         flex-direction: column;
         gap: 10px;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 10px 0; /* Remove side padding for edge alignment */
+        height: 100%;
     }
 
     .message-row {
         display: flex;
         align-items: flex-end;
+        justify-content: flex-start;
+        margin-left: 0;
+        margin-right: 0;
     }
 
-        .message-row.sent {
-            flex-direction: row-reverse;
-        }
+    .message-row.sent {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
 
     .message-bubble {
         max-width: 60%;
         padding: 10px 16px;
         border-radius: 18px;
-        margin: 0 8px;
+        margin: 0 0.5vw; /* Reduce margin to move closer to edge */
         position: relative;
         background: #e0eaff;
         color: #222;
@@ -40,6 +52,8 @@
         color: #222;
         border-bottom-right-radius: 4px;
         border-bottom-left-radius: 18px;
+        margin-right: 0.5vw;
+        margin-left: 0;
     }
 
     .message-row.received .message-bubble {
@@ -47,6 +61,8 @@
         color: #222;
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 18px;
+        margin-left: 0.5vw;
+        margin-right: 0;
     }
 
     .profile-pic {
@@ -74,35 +90,53 @@
     }
 </style>
 
-@if (Model != null && Model.Any())
-{
-    foreach (var message in Model)
-    {
-        var isSent = message.SenderUserId == message.UserId;
-        var profilePic = isSent ? message.UserProfilePicturePath : message.ReceiverProfilePicturePath;
-        <div class="message-row @(isSent ? "sent" : "received")">
-            <img src="@profilePic" alt="Profile" class="profile-pic" />
-            <div class="message-bubble">
-                <div><strong>@message.SenderUserName</strong></div>
-                <div>@message.Content</div>
-                @if (!string.IsNullOrEmpty(message.AttachmentUrl))
-                {
-                    <div><a href="@message.AttachmentUrl" target="_blank">Attachment</a></div>
-                }
-                <div class="message-meta">
-                    <span>@message.Timestamp.ToString("g")</span>
-                    @if (isSent)
-                    {
-                        <span class="seen-indicator" title="@(message.IsRead ? "Seen" : "Delivered")">
-                            @(message.IsRead ? "✔✔" : "✔")
-                        </span>
-                    }
+<div class="chat-window">
+    <div id="messagesContainer">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var message in Model)
+            {
+                var isSent = message.SenderUserId == message.UserId;
+                var profilePic = isSent ? message.UserProfilePicturePath : message.ReceiverProfilePicturePath;
+                <div class="message-row @(isSent ? "sent" : "received")">
+                    <img src="@profilePic" alt="Profile" class="profile-pic" />
+                    <div class="message-bubble">
+                        <div><strong>@message.SenderUserName</strong></div>
+                        <div>@message.Content</div>
+                        @if (!string.IsNullOrEmpty(message.AttachmentUrl))
+                        {
+                            <div><a href="@message.AttachmentUrl" target="_blank">Attachment</a></div>
+                        }
+                        <div class="message-meta">
+                            <span class="message-timestamp" data-utc="@message.Timestamp.ToString("o")">
+                                @message.Timestamp.ToString("g")
+                            </span>
+                            @if (isSent)
+                            {
+                                <span class="seen-indicator" title="@(message.IsRead ? "Seen" : "Delivered")">
+                                    @(message.IsRead ? "✔✔" : "✔")
+                                </span>
+                            }
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    }
-}
-else
-{
-    <div>No messages yet.</div>
-}
+            }
+        }
+        else
+        {
+            <div>No messages yet.</div>
+        }
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.message-timestamp').forEach(function (el) {
+            const utc = el.getAttribute('data-utc');
+            if (utc) {
+                const local = new Date(utc);
+                el.textContent = local.toLocaleString();
+            }
+        });
+    });
+</script>
