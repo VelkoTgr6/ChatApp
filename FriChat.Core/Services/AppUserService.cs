@@ -122,31 +122,13 @@ namespace FriChat.Core.Services
             var conversationModel = new ConversationFormViewModel
             {
                 ConversationId = conversationEntity.Id,
-                UserId = userId,
                 ReceiverUserId = friendId,
-                UserName = conversationEntity.UserName,
                 ReceiverUserName = conversationEntity.ReceiverUserName,
                 ReceiverProfilePicturePath = loadedConversation.ReceiverUser.ProfilePicturePath,
                 IsGroupConversation = conversationEntity.IsGroupConversation,
                 UserProfilePicturePath = loadedConversation.User.ProfilePicturePath,
                 ConversationName = conversationEntity.ReceiverUserName,
-                ConversationPicturePath = conversationEntity.ConversationImageUrl,
-                NewMessageContent = string.Empty,
-                NewMessage = conversationEntity.Messages
-                            .Where(m => m.SenderId == userId && m.ReceiverId == friendId)
-                            .OrderByDescending(m => m.Timestamp)
-                            .Select(m => new MessageViewModel
-                            {
-                                MessageId = m.Id,
-                                Content = EncryptionHelper.Decrypt(m.Content),
-                                Timestamp = m.Timestamp,
-                                IsRead = m.IsRead,
-                                SenderUserId = m.SenderId,
-                                ReceiverUserId = m.ReceiverId,
-                                AttachmentType = m.Type,
-                                AttachmentUrl = m.AttachmentUrl
-                            })
-                            .FirstOrDefault(),
+                ConversationPicturePath = conversationEntity.ConversationImageUrl
             };
 
             return conversationModel;
@@ -187,9 +169,7 @@ namespace FriChat.Core.Services
                 .Include(c => c.Messages)
                 .Select(Conversation => new ConversationFormViewModel
                 {
-                    UserId = userId,
                     ReceiverUserId = friendId,
-                    UserName = Conversation.User.UserName,
                     ReceiverUserName = Conversation.ReceiverUser.UserName,
                     ReceiverProfilePicturePath = Conversation.ReceiverUser.ProfilePicturePath,
                     IsGroupConversation = Conversation.IsGroupConversation,
@@ -197,38 +177,6 @@ namespace FriChat.Core.Services
                     UserProfilePicturePath = Conversation.User.ProfilePicturePath,
                     ConversationName = Conversation.ReceiverUserName,
                     ConversationPicturePath = Conversation.ConversationImageUrl,
-                    NewMessageContent = string.Empty,
-                    NewMessage = Conversation.Messages
-                        .Where(m => m.SenderId == userId && m.ReceiverId == friendId)
-                        .OrderByDescending(m => m.Timestamp)
-                        .Select(m => new MessageViewModel
-                        {
-                            MessageId = m.Id,
-                            Content = EncryptionHelper.Decrypt(m.Content),
-                            Timestamp = m.Timestamp,
-                            IsRead = m.IsRead,
-                            SenderUserId = m.SenderId,
-                            ReceiverUserId = m.ReceiverId,
-                            AttachmentType = m.Type,
-                            AttachmentUrl = m.AttachmentUrl,
-                            UserId = userId,
-                            ConversationId = Conversation.Id,
-
-                        })
-                        .FirstOrDefault(),
-                    Messages = Conversation.Messages.Select(m => new MessageViewModel
-                    {
-                        MessageId = m.Id,
-                        Content = EncryptionHelper.Decrypt(m.Content),
-                        Timestamp = m.Timestamp,
-                        IsRead = m.IsRead,
-                        SenderUserId = m.SenderId,
-                        ReceiverUserId = m.ReceiverId,
-                        AttachmentType = m.Type,
-                        AttachmentUrl = m.AttachmentUrl,
-                        UserId = userId,
-                        ConversationId = Conversation.Id,
-                    }).ToList()
                 }).FirstOrDefaultAsync();
 
             if (conversation == null)
