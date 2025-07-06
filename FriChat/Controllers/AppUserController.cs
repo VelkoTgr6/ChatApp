@@ -2,7 +2,13 @@
 using FriChat.Core.Models.AppUser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System.IO;
+using System.Threading.Tasks;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace FriChat.Controllers
 {
@@ -170,7 +176,7 @@ namespace FriChat.Controllers
             {
                 return NotFound("User not found.");
             }
-            var conversationId = await appUserService.GetConversationId(userId, friendId);
+            var conversationId = await appUserService.GetConversationIdAsync(userId, friendId);
 
             var conversation = await appUserService.GetConversationAsync(userId, friendId,conversationId);
 
@@ -183,7 +189,7 @@ namespace FriChat.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUserMessagesForConversation(int friendId, int conversationId)
+        public async Task<IActionResult> GetUserMessagesForConversationPartial(int friendId, int conversationId)
         {
             if (friendId <= 0 || conversationId <= 0)
             {
@@ -196,6 +202,66 @@ namespace FriChat.Controllers
             }
             var messages = await appUserService.GetUserMessagesForConversationAsync(userId, friendId, conversationId);
             return PartialView("_MessagesPartial", messages);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage(int friendId, string messageContent, int conversationId)
+        {
+            if (friendId <= 0 || string.IsNullOrWhiteSpace(messageContent) || conversationId <= 0)
+                return Json(new { success = false, error = "Invalid input data." });
+
+            var userId = await appUserService.GetUserIdAsync(User.GetId());
+            if (userId <= 0)
+                return Json(new { success = false, error = "User not found." });
+
+            var result = await appUserService.CreateMessageAsync(userId, friendId, messageContent, conversationId);
+            var messages = await appUserService.GetUserMessagesForConversationAsync(userId, friendId, conversationId);
+
+            if (result > 0)
+            {
+                // Render the partial view to a string and return as JSON for AJAX replacement
+                var html = await RenderViewAsync("_MessagesPartial", messages, true);
+                return Json(new { success = true, html });
+            }
+
+            return Json(new { success = false, error = "Failed to create message." });
+        }
+
+        private async Task<string> RenderViewAsync<TModel>(string viewName, TModel model, bool partial = false)
+        {
+            var actionContext = this.ControllerContext;
+            var serviceProvider = HttpContext.RequestServices;
+            var viewEngine = (ICompositeViewEngine)serviceProvider.GetService(typeof(ICompositeViewEngine));
+            var tempDataProvider = (ITempDataProvider)serviceProvider.GetService(typeof(ITempDataProvider));
+            var viewResult = viewEngine.FindView(actionContext, viewName, !partial);
+
+            if (!viewResult.Success)
+            {
+                throw new InvalidOperationException($"View '{viewName}' not found.");
+            }
+
+            var viewDictionary = new ViewDataDictionary<TModel>(
+                metadataProvider: new EmptyModelMetadataProvider(),
+                modelState: ModelState)
+            {
+                Model = model
+            };
+
+            using (var sw = new StringWriter())
+            {
+                var viewContext = new ViewContext(
+                    actionContext,
+                    viewResult.View,
+                    viewDictionary,
+                    new TempDataDictionary(actionContext.HttpContext, tempDataProvider),
+                    sw,
+                    new HtmlHelperOptions()
+                );
+
+                await viewResult.View.RenderAsync(viewContext);
+                return sw.ToString();
+            }
         }
     }
 }

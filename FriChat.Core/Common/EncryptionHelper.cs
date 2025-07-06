@@ -5,12 +5,13 @@ namespace FriChat.Core.Common
 {
     public class EncryptionHelper
     {
-        private static readonly byte[] Key = Encoding.UTF8.GetBytes("your-32-char-key-here-123456789012"); // 32 bytes for AES-256
-        private static readonly byte[] IV = Encoding.UTF8.GetBytes("your-16-char-iv-123"); // 16 bytes for AES
+        // Use guaranteed-correct key and IV lengths for AES-256
+        private static readonly byte[] Key = Encoding.UTF8.GetBytes("12345678901234567890123456789012"); // 32 bytes
+        private static readonly byte[] IV = Encoding.UTF8.GetBytes("1234567890123456"); // 16 bytes
 
         public static string Encrypt(string plainText)
         {
-            using var aes = Aes.Create();
+            using var aes = Aes.Create();   
             aes.Key = Key;
             aes.IV = IV;
             var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);

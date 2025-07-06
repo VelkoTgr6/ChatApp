@@ -5,8 +5,12 @@ namespace FriChat.Core.Models.AppUser
     public class MessageViewModel
     {
         public int MessageId { get; set; }
+        public int ConversationId { get; set; }
+        public int UserId { get; set; }
         public int ReceiverUserId { get; set; }
         public int SenderUserId { get; set; }
+        public string? UserProfilePicturePath { get; set; }
+        public string? ReceiverProfilePicturePath { get; set; }
         public string SenderUserName { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; }

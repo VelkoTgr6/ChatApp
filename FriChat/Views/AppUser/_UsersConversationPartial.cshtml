@@ -1,23 +1,22 @@
 ﻿@model ConversationFormViewModel
 
-<div class="chat-window">
-    <div class="chat-messages">
-        @if (Model.Messages != null && Model.Messages.Any())
-        {
-            foreach (var message in Model.Messages)
-            {
-                <div>
-                    <strong>@message.SenderUserName:</strong> @message.Content
-                </div>
-            }
-        }
-        else
-        {
-            <div>No messages yet.</div>
-        }
+<div class="chat-window"
+     data-conversation-id="@Model.ConversationId"
+     data-friend-id="@Model.ReceiverUserId"
+     data-user-name="@User.Identity.Name">
+    <div id="messagesContainer">
+        <!-- Messages will be loaded here via AJAX -->
     </div>
-    <form asp-action="SendMessage" asp-controller="AppUser" method="post" class="chat-input">
-        <input asp-for="NewMessage" type="text" placeholder="Type your message..." autocomplete="off" />
+    <form id="sendMessageForm" class="chat-input" method="post" action="/AppUser/SendMessage">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="friendId" value="@Model.ReceiverUserId" />
+        <input type="hidden" name="conversationId" value="@Model.ConversationId" />
+        <input id="messageInput" name="messageContent" type="text" value="" placeholder="Type your message..." autocomplete="off" />
         <button type="submit">Send</button>
     </form>
 </div>
+
+<script src="~/js/messages.js"></script>
+<script>
+    if (window.initMessages) window.initMessages();
+</script>

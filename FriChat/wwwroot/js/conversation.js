@@ -38,7 +38,7 @@
     }
 });
 
-window.loadUserConversation = function(userId) {
+window.loadUserConversation = function (userId) {
     const container = document.getElementById('userConversationPartialContainer');
     if (!container) return;
 
@@ -47,12 +47,19 @@ window.loadUserConversation = function(userId) {
     fetch(`/AppUser/GetConversationPartial?friendId=${encodeURIComponent(userId)}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(response => response.text())
-    .then(html => {
-        container.innerHTML = html;
-        // Optionally attach handlers here
-    })
-    .catch(() => {
-        container.innerHTML = '<div>Error loading conversation.</div>';
-    });
+        .then(response => {
+            if (!response.ok) throw new Error('Server error: ' + response.status);
+            return response.text();
+        })
+        .then(html => {
+            container.innerHTML = html;
+            try {
+                if (window.initMessages) window.initMessages();
+            } catch (e) {
+                container.innerHTML += '<div style="color:red;">initMessages failed.</div>';
+            }
+        })
+        .catch(() => {
+            container.innerHTML = '<div>Error loading conversationnnn.</div>';
+        });
 };

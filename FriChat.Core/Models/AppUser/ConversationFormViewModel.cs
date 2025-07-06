@@ -12,6 +12,7 @@
         public string? UserProfilePicturePath { get; set; }
         public string? ReceiverProfilePicturePath { get; set; }
         public MessageViewModel ? NewMessage { get; set; } = new MessageViewModel();
+        public string NewMessageContent { get; set; } = string.Empty;
         public bool IsGroupConversation { get; set; } = false;
         public List<MessageViewModel> ? Messages { get; set; } = new();
         //public DateTime LastMessageTimestamp => Messages.Any() ? Messages.Last().Timestamp : DateTime.MinValue;

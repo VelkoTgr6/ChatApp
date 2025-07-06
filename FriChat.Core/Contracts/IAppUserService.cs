@@ -15,6 +15,7 @@ namespace FriChat.Core.Contracts
         Task<IEnumerable<MessageViewModel>> GetUserMessagesForConversationAsync(int userId, int friendId,int conversationId);
         Task<ConversationFormViewModel> GetConversationAsync(int userId, int friendId,int coversationId);
         Task<ConversationFormViewModel> CreateConversationAsync(int userId, int friendId);
-        Task<int> GetConversationId(int userId, int friendId);
+        Task<int> GetConversationIdAsync(int userId, int friendId);
+        Task <int> CreateMessageAsync(int userId, int friendId, string messageContent, int conversationId);
     }
 }

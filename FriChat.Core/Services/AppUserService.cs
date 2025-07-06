@@ -1,4 +1,5 @@
-﻿using FriChat.Core.Contracts;
+﻿using FriChat.Core.Common;
+using FriChat.Core.Contracts;
 using FriChat.Core.Models.AppUser;
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Data.Models;
@@ -130,13 +131,14 @@ namespace FriChat.Core.Services
                 UserProfilePicturePath = loadedConversation.User.ProfilePicturePath,
                 ConversationName = conversationEntity.ReceiverUserName,
                 ConversationPicturePath = conversationEntity.ConversationImageUrl,
+                NewMessageContent = string.Empty,
                 NewMessage = conversationEntity.Messages
                             .Where(m => m.SenderId == userId && m.ReceiverId == friendId)
                             .OrderByDescending(m => m.Timestamp)
                             .Select(m => new MessageViewModel
                             {
                                 MessageId = m.Id,
-                                Content = m.Content,
+                                Content = EncryptionHelper.Decrypt(m.Content),
                                 Timestamp = m.Timestamp,
                                 IsRead = m.IsRead,
                                 SenderUserId = m.SenderId,
@@ -195,31 +197,37 @@ namespace FriChat.Core.Services
                     UserProfilePicturePath = Conversation.User.ProfilePicturePath,
                     ConversationName = Conversation.ReceiverUserName,
                     ConversationPicturePath = Conversation.ConversationImageUrl,
+                    NewMessageContent = string.Empty,
                     NewMessage = Conversation.Messages
                         .Where(m => m.SenderId == userId && m.ReceiverId == friendId)
                         .OrderByDescending(m => m.Timestamp)
                         .Select(m => new MessageViewModel
                         {
                             MessageId = m.Id,
-                            Content = m.Content,
+                            Content = EncryptionHelper.Decrypt(m.Content),
                             Timestamp = m.Timestamp,
                             IsRead = m.IsRead,
                             SenderUserId = m.SenderId,
                             ReceiverUserId = m.ReceiverId,
                             AttachmentType = m.Type,
-                            AttachmentUrl = m.AttachmentUrl
+                            AttachmentUrl = m.AttachmentUrl,
+                            UserId = userId,
+                            ConversationId = Conversation.Id,
+
                         })
                         .FirstOrDefault(),
                     Messages = Conversation.Messages.Select(m => new MessageViewModel
                     {
                         MessageId = m.Id,
-                        Content = m.Content,
+                        Content = EncryptionHelper.Decrypt(m.Content),
                         Timestamp = m.Timestamp,
                         IsRead = m.IsRead,
                         SenderUserId = m.SenderId,
                         ReceiverUserId = m.ReceiverId,
                         AttachmentType = m.Type,
-                        AttachmentUrl = m.AttachmentUrl
+                        AttachmentUrl = m.AttachmentUrl,
+                        UserId = userId,
+                        ConversationId = Conversation.Id,
                     }).ToList()
                 }).FirstOrDefaultAsync();
 
@@ -233,7 +241,7 @@ namespace FriChat.Core.Services
             return conversation;
         }
 
-        public Task<int> GetConversationId(int userId, int friendId)
+        public Task<int> GetConversationIdAsync(int userId, int friendId)
         {
             return repository.AllAsReadOnly<Conversation>()
                 .Include(c => c.User)
@@ -317,26 +325,43 @@ namespace FriChat.Core.Services
         public async Task<IEnumerable<MessageViewModel>> GetUserMessagesForConversationAsync(int userId, int friendId, int conversationId)
         {
             var messages = await repository.AllAsReadOnly<Message>()
+                .Include(m=>m.Receiver)
+                .Include(m => m.Sender)
                 .Where(m => ((m.SenderId == userId && m.ReceiverId == friendId) ||
                             (m.SenderId == friendId && m.ReceiverId == userId)) &&
                             m.ConversationId == conversationId)
                 .OrderByDescending(m => m.Timestamp)
                 .Take(50) // Limit to the last 50 messages
                 .OrderBy(m => m.Timestamp)
-                .Select(m => new MessageViewModel
-                {
-                    MessageId = m.Id,
-                    Content = m.Content,
-                    Timestamp = m.Timestamp,
-                    IsRead = m.IsRead,
-                    SenderUserId = m.SenderId,
-                    ReceiverUserId = m.ReceiverId,
-                    AttachmentType = m.Type,
-                    AttachmentUrl = m.AttachmentUrl
-                })
                 .ToListAsync();
 
-            return messages;
+            // Mark messages as read if they are from the friend and not already read
+            if (messages.Any(m => m.SenderId == friendId && !m.IsRead))
+            {
+                foreach (var message in messages.Where(m => m.SenderId == friendId && !m.IsRead))
+                {
+                    message.IsRead = true;
+                }
+                await repository.SaveChangesAsync();
+            }
+
+            var decryptedMessages = messages.Select(m => new MessageViewModel
+            {
+                MessageId = m.Id,
+                Content = EncryptionHelper.Decrypt(m.Content),
+                Timestamp = m.Timestamp,
+                IsRead = m.IsRead,
+                SenderUserId = m.SenderId,
+                ReceiverUserId = m.ReceiverId,
+                AttachmentType = m.Type,
+                AttachmentUrl = m.AttachmentUrl,
+                UserId = userId,
+                ConversationId = conversationId,
+                UserProfilePicturePath = m.Sender.ProfilePicturePath,
+                ReceiverProfilePicturePath = m.Receiver.ProfilePicturePath,
+            });
+
+            return decryptedMessages;
         }
 
         public async Task<IEnumerable<UserSearchFormViewModel>> SearchUsersAsync(string searchTerm, int userId)
@@ -373,5 +398,29 @@ namespace FriChat.Core.Services
             return users;
         }
 
+        public async Task<int> CreateMessageAsync(int userId, int friendId, string messageContent, int conversationId)
+        {
+            var encryptedContent = EncryptionHelper.Encrypt(messageContent);
+
+            var message = new Message
+            {
+                SenderId = userId,
+                ReceiverId = friendId,
+                Content = encryptedContent,
+                Timestamp = DateTime.UtcNow,
+                IsRead = false,
+                Type = Infrastructure.Enums.MessageType.Text, // Assuming text message type
+                ConversationId = conversationId
+            };
+
+            await repository.AddAsync(message);
+            await repository.SaveChangesAsync();
+
+            // Update the conversation's last message
+            var conversation = await repository.AllAsReadOnly<Conversation>()
+                .FirstOrDefaultAsync(c => c.Id == conversationId && !c.IsDeleted);
+
+            return message.Id;
+        }
     }
 }
