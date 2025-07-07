@@ -1,8 +1,11 @@
-﻿using FriChat.Core.Common;
+﻿using FriChat.Infrastructure.Services.CloudinaryServices;
+using FriChat.Core.Common;
 using FriChat.Core.Contracts;
 using FriChat.Core.Models.AppUser;
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Data.Models;
+using FriChat.Infrastructure.Enums;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace FriChat.Core.Services
@@ -10,10 +13,12 @@ namespace FriChat.Core.Services
     public class AppUserService : IAppUserService
     {
         private readonly IRepository repository;
+        private readonly ICloudinary cloudinary;
 
-        public AppUserService(IRepository _repository)
+        public AppUserService(IRepository _repository, ICloudinary _cloudinary)
         {
             repository = _repository;
+            cloudinary = _cloudinary;
         }
 
         public async Task<int> AddFriendRequestToUserAsync(int userId, int friendId)
@@ -275,6 +280,7 @@ namespace FriChat.Core.Services
             var messages = await repository.AllAsReadOnly<Message>()
                 .Include(m=>m.Receiver)
                 .Include(m => m.Sender)
+                .Include(m => m.UserMedia)
                 .Where(m => ((m.SenderId == userId && m.ReceiverId == friendId) ||
                             (m.SenderId == friendId && m.ReceiverId == userId)) &&
                             m.ConversationId == conversationId)
@@ -302,7 +308,7 @@ namespace FriChat.Core.Services
                 SenderUserId = m.SenderId,
                 ReceiverUserId = m.ReceiverId,
                 AttachmentType = m.Type,
-                AttachmentUrl = m.AttachmentUrl,
+                AttachmentUrl = m.UserMedia.Url,
                 UserId = userId,
                 ConversationId = conversationId,
                 UserProfilePicturePath = m.Sender.ProfilePicturePath,
@@ -346,29 +352,68 @@ namespace FriChat.Core.Services
             return users;
         }
 
-        public async Task<int> CreateMessageAsync(int userId, int friendId, string messageContent, int conversationId)
+        public async Task<int> CreateMessageAsync(int userId, int friendId, IFormFile messageContent, MessageType messageType, int conversationId)
         {
-            var encryptedContent = EncryptionHelper.Encrypt(messageContent);
-            var timestamp = DateTime.Now;
+            string encryptedContent = null;
+            int? userMediaId = null;
 
-            
+            if (messageType == MessageType.Text || messageType == MessageType.Link)
+            {
+                // For text or link, just encrypt the content
+                using var reader = new StreamReader(messageContent.OpenReadStream());
+                var content = await reader.ReadToEndAsync();
+                encryptedContent = EncryptionHelper.Encrypt(content);
+            }
+            else
+            {
+                // For media, upload and create UserMedia
+                string? url = null;
+                switch (messageType)
+                {
+                    case MessageType.Image:
+                        url = await cloudinary.UploadImageFromUserAsync(messageContent, userId);
+                        break;
+                    case MessageType.Video:
+                        url = await cloudinary.UploadVideoFromUserAsync(messageContent, userId);
+                        break;
+                    case MessageType.Audio:
+                        url = await cloudinary.UploadAudioFromUserAsync(messageContent, userId);
+                        break;
+                    case MessageType.File:
+                        url = await cloudinary.UploadFileFromUserAsync(messageContent, userId);
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(url))
+                {
+                    var userMedia = new UserMedia
+                    {
+                        Url = url,
+                        Type = messageType,
+                        UploadedAt = DateTime.UtcNow,
+                        UserId = userId,
+                        ConversationId = conversationId
+                    };
+                    await repository.AddAsync(userMedia);
+                    await repository.SaveChangesAsync();
+                    userMediaId = userMedia.Id;
+                }
+            }
+
             var message = new Message
             {
                 SenderId = userId,
                 ReceiverId = friendId,
-                Content = encryptedContent,
+                Content = encryptedContent ?? string.Empty,
                 Timestamp = DateTime.UtcNow,
                 IsRead = false,
-                Type = Infrastructure.Enums.MessageType.Text, // Assuming text message type
-                ConversationId = conversationId
+                Type = messageType,
+                ConversationId = conversationId,
+                UserMediaId = userMediaId
             };
 
             await repository.AddAsync(message);
             await repository.SaveChangesAsync();
-
-            // Update the conversation's last message
-            var conversation = await repository.AllAsReadOnly<Conversation>()
-                .FirstOrDefaultAsync(c => c.Id == conversationId && !c.IsDeleted);
 
             return message.Id;
         }

@@ -92,7 +92,7 @@ namespace FriChat.Areas.Identity.Pages.Account
 
             if (Input.ProfilePictureFile != null && Input.ProfilePictureFile.Length > 0)
             {
-                var uploadedUrl = await cloudinary.UploadImageAsync(Input.ProfilePictureFile);
+                var uploadedUrl = await cloudinary.UploadProfileImageAsync(Input.ProfilePictureFile);
                 if (!string.IsNullOrEmpty(uploadedUrl))
                     profilePictureUrl = uploadedUrl; 
             }

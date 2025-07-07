@@ -72,6 +72,7 @@ namespace FriChat.Infrastructure
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<UserMedia> UserMedias { get; set; }
     }
 
 }

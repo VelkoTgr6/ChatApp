@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using FriChat.Infrastructure.Enums;
 
 namespace FriChat.Controllers
 {
@@ -178,7 +179,7 @@ namespace FriChat.Controllers
             }
             var conversationId = await appUserService.GetConversationIdAsync(userId, friendId);
 
-            var conversation = await appUserService.GetConversationAsync(userId, friendId,conversationId);
+            var conversation = await appUserService.GetConversationAsync(userId, friendId, conversationId);
 
             if (conversation == null)
             {
@@ -206,21 +207,40 @@ namespace FriChat.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMessage(int friendId, string messageContent, int conversationId)
+        public async Task<IActionResult> SendMessage(int friendId, IFormFile? messageContent, string? textContent, int conversationId, MessageType messageType)
         {
-            if (friendId <= 0 || string.IsNullOrWhiteSpace(messageContent) || conversationId <= 0)
-                return Json(new { success = false, error = "Invalid input data." });
+            if (friendId <= 0 || conversationId <= 0)
+                return Json(new { success = false, error = "Invalid friend or conversation ID." });
 
             var userId = await appUserService.GetUserIdAsync(User.GetId());
             if (userId <= 0)
                 return Json(new { success = false, error = "User not found." });
 
-            var result = await appUserService.CreateMessageAsync(userId, friendId, messageContent, conversationId);
+            int result = 0;
+
+            if (messageType == MessageType.Text || messageType == MessageType.Link)
+            {
+                if (string.IsNullOrWhiteSpace(textContent))
+                    return Json(new { success = false, error = "Message content is required." });
+
+                // Convert text to a stream and wrap as IFormFile for compatibility
+                var bytes = System.Text.Encoding.UTF8.GetBytes(textContent);
+                using var stream = new MemoryStream(bytes);
+                var formFile = new FormFile(stream, 0, bytes.Length, "textContent", "message.txt");
+                result = await appUserService.CreateMessageAsync(userId, friendId, formFile, messageType, conversationId);
+            }
+            else
+            {
+                if (messageContent == null || messageContent.Length == 0)
+                    return Json(new { success = false, error = "File is required for this message type." });
+
+                result = await appUserService.CreateMessageAsync(userId, friendId, messageContent, messageType, conversationId);
+            }
+
             var messages = await appUserService.GetUserMessagesForConversationAsync(userId, friendId, conversationId);
 
             if (result > 0)
             {
-                // Render the partial view to a string and return as JSON for AJAX replacement
                 var html = await RenderViewAsync("_MessagesPartial", messages, true);
                 return Json(new { success = true, html });
             }

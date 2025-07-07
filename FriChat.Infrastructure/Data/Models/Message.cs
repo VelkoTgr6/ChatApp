@@ -37,20 +37,27 @@ namespace FriChat.Infrastructure.Data.Models
         public int ReceiverId { get; set; }
 
         [Required]
+        [Comment("Identifier for the conversation to which this message belongs")]
         public int ConversationId { get; set; }
 
         [ForeignKey(nameof(ConversationId))]
         [Comment("The conversation to which this message belongs")]
         public virtual Conversation Conversation { get; set; } = null!;
 
-        [MaxLength(AttachmentUrlMaxLength)]
-        [Comment("URL of the attachment, if any (e.g., image, file)")]
-        public string? AttachmentUrl { get; set; }
+        [Required]
+        [Comment("Identifier for the UserMedia to which belongs")]
+        public int? UserMediaId { get; set; }
+
+        [ForeignKey(nameof(UserMediaId))]
+        [Comment("The media associated with the message, if any (e.g., image, file)")]
+        public virtual UserMedia? UserMedia { get; set; } = null;
 
         [ForeignKey(nameof(SenderId))]
+        [Comment("The user who sent the message")]
         public virtual AppUser Sender { get; set; } = null!;
 
         [ForeignKey(nameof(ReceiverId))]
+        [Comment("The user who received the message")]
         public virtual AppUser Receiver { get; set; } = null!;
     }
 

@@ -1,4 +1,6 @@
 ﻿using FriChat.Core.Models.AppUser;
+using FriChat.Infrastructure.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace FriChat.Core.Contracts
 {
@@ -16,6 +18,6 @@ namespace FriChat.Core.Contracts
         Task<ConversationFormViewModel> GetConversationAsync(int userId, int friendId,int coversationId);
         Task<ConversationFormViewModel> CreateConversationAsync(int userId, int friendId);
         Task<int> GetConversationIdAsync(int userId, int friendId);
-        Task <int> CreateMessageAsync(int userId, int friendId, string messageContent, int conversationId);
+        Task <int> CreateMessageAsync(int userId, int friendId, IFormFile messageContent,MessageType messageType, int conversationId);
     }
 }

@@ -3,6 +3,7 @@ using FriChat.Core.Services;
 using FriChat.Infrastructure;
 using FriChat.Infrastructure.Data.Common;
 using FriChat.Infrastructure.Services.CloudinaryServices;
+using FriChat.Infrastructure.Services.MediaCleanup;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,7 +21,12 @@ namespace FriChat.Extensions
                 var apiSecret = configuration["Cloudinary:ApiSecret"] ?? throw new InvalidOperationException("ApiSecret not configured.");
                 return new CloudinaryService(cloudName, apiKey, apiSecret);
             });
+
             services.AddScoped<IAppUserService, AppUserService>();
+
+            services.AddSignalR();
+
+            services.AddHostedService<MediaCleanupService>();
 
             return services;
         }

@@ -32,8 +32,6 @@ namespace FriChat
                 );
             });
 
-            builder.Services.AddSignalR();
-
             builder.Services.AddControllersWithViews(options =>
             {
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
