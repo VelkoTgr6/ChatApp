@@ -44,7 +44,6 @@ namespace FriChat.Infrastructure.Data.Models
         [Comment("The conversation to which this message belongs")]
         public virtual Conversation Conversation { get; set; } = null!;
 
-        [Required]
         [Comment("Identifier for the UserMedia to which belongs")]
         public int? UserMediaId { get; set; }
 

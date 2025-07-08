@@ -1,5 +1,7 @@
 ﻿@model ConversationFormViewModel
 
+<link rel="stylesheet" href="~/css/conversation.css" />
+
 <div class="chat-window"
      data-conversation-id="@Model.ConversationId"
      data-friend-id="@Model.ReceiverUserId"
@@ -7,16 +9,34 @@
     <div id="messagesContainer">
         <!-- Messages will be loaded here via AJAX -->
     </div>
-    <form id="sendMessageForm" class="chat-input" method="post" action="/AppUser/SendMessage">
+
+    <form id="sendMessageForm" method="post" action="/AppUser/SendMessage" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
         <input type="hidden" name="friendId" value="@Model.ReceiverUserId" />
         <input type="hidden" name="conversationId" value="@Model.ConversationId" />
-        <input id="messageInput" name="messageContent" type="text" value="" placeholder="Type your message..." autocomplete="off" />
-        <button type="submit">Send</button>
+        <input type="hidden" name="messageType" id="messageType" value="Text" />
+
+        <div class="chat-input-wrapper">
+            <input id="messageInput" name="textContent" type="text" placeholder="Type a message..." autocomplete="off" />
+
+            <button type="button" id="moreBtn" class="more-button">
+                <i class="fas fa-ellipsis-h"></i>
+            </button>
+
+            <button type="submit">Send</button>
+
+            <div id="messageTypeMenu" class="message-type-menu">
+                <div class="message-type-option" data-type="Text"><i class="fas fa-font"></i> Text</div>
+                <div class="message-type-option" data-type="Image"><i class="fas fa-image"></i> Image</div>
+                <div class="message-type-option" data-type="Video"><i class="fas fa-video"></i> Video</div>
+                <div class="message-type-option" data-type="Audio"><i class="fas fa-microphone"></i> Audio</div>
+                <div class="message-type-option" data-type="File"><i class="fas fa-paperclip"></i> File</div>
+                <div class="message-type-option" data-type="Link"><i class="fas fa-link"></i> Link</div>
+            </div>
+        </div>
+
+        <label for="fileInput" class="file-upload-label" id="fileLabel">Choose a file</label>
+        <input id="fileInput" name="messageContent" type="file" />
     </form>
-</div>
 
 <script src="~/js/messages.js"></script>
-<script>
-    if (window.initMessages) window.initMessages();
-</script>

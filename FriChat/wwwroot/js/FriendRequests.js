@@ -43,11 +43,7 @@
                 const userId = form.dataset.userid;
                 const formData = new FormData(form);
 
-                // Grab the anti-forgery token
-                const tokenInput = form.querySelector('input[name="__RequestVerificationToken"]');
-                if (tokenInput) {
-                    formData.append('__RequestVerificationToken', tokenInput.value);
-                }
+                // Removed duplicate anti-forgery token appending
 
                 fetch(action, {
                     method: 'POST',

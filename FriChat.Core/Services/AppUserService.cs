@@ -299,6 +299,7 @@ namespace FriChat.Core.Services
                 await repository.SaveChangesAsync();
             }
 
+            // Decrypt the messages
             var decryptedMessages = messages.Select(m => new MessageViewModel
             {
                 MessageId = m.Id,
@@ -308,7 +309,7 @@ namespace FriChat.Core.Services
                 SenderUserId = m.SenderId,
                 ReceiverUserId = m.ReceiverId,
                 AttachmentType = m.Type,
-                AttachmentUrl = m.UserMedia.Url,
+                AttachmentUrl = m.UserMedia != null ? m.UserMedia.Url : null,
                 UserId = userId,
                 ConversationId = conversationId,
                 UserProfilePicturePath = m.Sender.ProfilePicturePath,

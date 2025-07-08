@@ -127,18 +127,26 @@ namespace FriChat.Controllers
         {
             if (friendId <= 0)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, error = "Invalid friend ID." });
                 return BadRequest("Invalid friend ID.");
             }
             var userId = await appUserService.GetUserIdAsync(User.GetId());
             if (userId <= 0)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, error = "User not found." });
                 return NotFound("User not found.");
             }
             var result = await appUserService.ConfirmFriendRequestAsync(userId, friendId);
             if (result > 0)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true });
                 return RedirectToAction(nameof(Index));
             }
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, error = "Failed to confirm friend request." });
             return BadRequest("Failed to confirm friend request.");
         }
 
@@ -148,18 +156,26 @@ namespace FriChat.Controllers
         {
             if (friendId <= 0)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, error = "Invalid friend ID." });
                 return BadRequest("Invalid friend ID.");
             }
             var userId = await appUserService.GetUserIdAsync(User.GetId());
             if (userId <= 0)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, error = "User not found." });
                 return NotFound("User not found.");
             }
             var result = await appUserService.DeclineFriendRequestAsync(userId, friendId);
             if (result > 0)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true });
                 return RedirectToAction(nameof(Index));
             }
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, error = "Failed to reject friend request." });
             return BadRequest("Failed to reject friend request.");
         }
 
